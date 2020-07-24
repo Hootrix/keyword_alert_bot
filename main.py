@@ -312,6 +312,8 @@ async def unsubscribe(event):
   
 
   text = event.message.text
+  text = text.replace('，',',')# 替换掉中文逗号
+  text = regex.sub('\s*,\s*',',',text) # 确保英文逗号间隔中间都没有空格  如 "https://t.me/xiaobaiup, https://t.me/com9ji"
   splitd = [i for i in regex.split('\s+',text) if i]# 删除空元素
   if len(splitd) <= 1:
     await event.respond('输入需要**取消订阅**的关键字\n\nEnter a keyword that requires **unsubscribe**')
@@ -407,6 +409,8 @@ async def echo(event):
   """Echo the user message."""
   chat_id = event.message.chat.id
   text = event.text
+  text = text.replace('，',',')# 替换掉中文逗号
+  text = regex.sub('\s*,\s*',',',text) # 确保英文逗号间隔中间都没有空格  如 "https://t.me/xiaobaiup, https://t.me/com9ji"
 
   find = cache.get('status_{}'.format(chat_id))
   if find:
