@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e4f6da9a256285f3c102307d66182e93f3ee3840cdaedc893566e65476f34e32"
+            "sha256": "84c5d727645c861d2ef1a98f14f5871e4f7f87761329f57078acc88fc8ddc0e2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,14 @@
         ]
     },
     "default": {
+        "diskcache": {
+            "hashes": [
+                "sha256:69b253a6ffe95bb4bafb483b97c24fca3c2c6c47b82e92b36486969a7e80d47d",
+                "sha256:bcee5a59f9c264e2809e58d01be6569a3bbb1e36a1e0fb83f7ef9b2075f95ce0"
+            ],
+            "index": "pypi",
+            "version": "==4.1.0"
+        },
         "peewee": {
             "hashes": [
                 "sha256:1269a9736865512bd4056298003aab190957afe07d2616cf22eaf56cb6398369"

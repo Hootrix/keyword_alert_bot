@@ -10,6 +10,7 @@ telethon = "*"
 pysocks = "*"
 peewee = "*"
 pyyaml = "*"
+diskcache = "*"
 
 [requires]
 python_version = "3.7"
