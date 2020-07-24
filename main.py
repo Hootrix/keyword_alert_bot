@@ -254,6 +254,8 @@ async def subscribe(event):
     raise events.StopPropagation
   
   text = event.message.text
+  text = text.replace('，',',')# 替换掉中文逗号
+  text = regex.sub('\s*,\s*',',',text) # 确保英文逗号间隔中间都没有空格  如 "https://t.me/xiaobaiup, https://t.me/com9ji"
   splitd = [i for i in regex.split('\s+',text) if i]# 删除空元素
   if len(splitd) <= 1:
     await event.respond('输入需要订阅的关键字,支持js正则语法：`/.../ig`\n\nInput the keyword that needs to subscribe, support JS regular syntax：`/.../ig`')
