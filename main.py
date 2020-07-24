@@ -12,6 +12,10 @@ import threading
 # from telethon.tl.functions.messages import (GetHistoryRequest)
 import yaml
 
+# 配置访问tg服务器的代理
+# proxy = (socks.SOCKS5, '127.0.0.1', 1088)
+proxy = None
+
 parent_path = os.path.dirname(os.path.realpath(__file__))# 保存数据文件/登录会话信息路径  当前目录
 conf_path = parent_path + '/config.yml'
 with open(conf_path) as f:
@@ -19,13 +23,13 @@ with open(conf_path) as f:
 
 cache = diskcache.Cache(parent_path+'/.tmp')# 设置缓存文件目录  当前tmp文件夹
 
-client = TelegramClient('{}/.{}_tg_login'.format(parent_path,account['username']), account['api_id'], account['api_hash'], proxy = (socks.SOCKS5, '127.0.0.1', 1088))
+client = TelegramClient('{}/.{}_tg_login'.format(parent_path,account['username']), account['api_id'], account['api_hash'], proxy = proxy)
 # client.start(phone=account['phone'])
 client.start()
 
 
 # 设置bot  ，且直接启动
-bot = TelegramClient('.{}'.format(account['bot_name']), account['api_id'], account['api_hash'],proxy = (socks.SOCKS5, '127.0.0.1', 1088)).start(bot_token=account['bot_token'])
+bot = TelegramClient('.{}'.format(account['bot_name']), account['api_id'], account['api_hash'],proxy = proxy).start(bot_token=account['bot_token'])
 
 
 def js_to_py_re(rx):
