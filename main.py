@@ -143,7 +143,9 @@ def parse_full_command(command, keywords, channels):
   channels_list = channels.split(',')
   res = []
   for keyword in keywords_list:
+    keyword = keyword.strip()
     for channel in channels_list:
+      channel = channel.strip()
       channel = parse_url(channel)['uri'].replace('/','') # 支持传入url  类似 https://t.me/xiaobaiup
       res.append((keyword,channel))
   return res
