@@ -168,7 +168,7 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
       await client(JoinChannelRequest(c))
       res.append((k,c))
     except Exception as _e: # 不存在的频道
-      return '频道错误，无法使用\n\nChannel error, unable to use'
+      return '{}频道错误，无法使用\n\nChannel error, unable to use'.format(c)
       pass 
     
   # 写入数据表
@@ -264,7 +264,7 @@ async def subscribe(event):
   elif len(splitd)  == 3:
     command, keywords, channels = splitd
     result = await join_channel_insert_subscribe(user_id,parse_full_command(command, keywords, channels))
-    if isinstance(result,str): await event.respond(result)
+    if isinstance(result,str): await event.respond(result,parse_mod = None)
     msg = ''
     for key,channel in result:
       msg += '{},{}\n'.format(key,channel)
@@ -428,7 +428,7 @@ async def echo(event):
       command, keywords, channels = splitd
       user_id = utils.db.user.get_or_none(chat_id=chat_id)
       result = await join_channel_insert_subscribe(user_id,parse_full_command(command, keywords, channels))
-      if isinstance(result,str): await event.respond(result)
+      if isinstance(result,str): await event.respond(result,parse_mod = None)
       msg = ''
       for key,channel in result:
         msg += '{},{}\n'.format(key,channel)
