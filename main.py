@@ -132,7 +132,7 @@ def parse_full_command(command, keywords, channels):
   """
 处理多字段的命令参数  拼接合并返回
   Args:
-      command ([type]): [description]
+      command ([type]): [命令 如 subscribe  unsubscribe]
       keywords ([type]): [description]
       channels ([type]): [description]
 
