@@ -168,7 +168,7 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
       await client(JoinChannelRequest(c))
       res.append((k,c))
     except Exception as _e: # 不存在的频道
-      return '{}频道错误，无法使用\n\nChannel error, unable to use'.format(c)
+      return '无法使用该频道：{}\n\nChannel error, unable to use'.format(c)
       pass 
     
   # 写入数据表
@@ -264,13 +264,14 @@ async def subscribe(event):
   elif len(splitd)  == 3:
     command, keywords, channels = splitd
     result = await join_channel_insert_subscribe(user_id,parse_full_command(command, keywords, channels))
-    if isinstance(result,str): await event.respond(result,parse_mod = None)
-    msg = ''
-    for key,channel in result:
-      msg += '{},{}\n'.format(key,channel)
-    if msg:
-      await event.respond('success:\n'+msg,parse_mode = None)
-
+    if isinstance(result,str): 
+        await event.respond(result,parse_mode = None) # 提示错误消息
+    else:
+      msg = ''
+      for key,channel in result:
+        msg += 'keyword:{}  channel:{}\n'.format(key,channel)
+      if msg:
+        await event.respond('success subscribe:\n'+msg,parse_mode = None)
   raise events.StopPropagation
 
 
@@ -323,11 +324,12 @@ async def unsubscribe(event):
   elif len(splitd)  == 3:
     command, keywords, channels = splitd
     result = update_subscribe(user_id,parse_full_command(command, keywords, channels))
-    msg = ''
-    for key,channel in result:
-      msg += '{},{}\n'.format(key,channel)
-    if msg:
-      await event.respond('success:\n'+msg,parse_mode = None)
+    # msg = ''
+    # for key,channel in result:
+    #   msg += 'keyword:{}  channel:{}\n'.format(key,channel)
+    # if msg:
+    #   await event.respond('success unsubscribe:\n'+msg,parse_mode = None)
+    await event.respond('success unsubscribe.')
 
   raise events.StopPropagation
 
@@ -380,7 +382,7 @@ async def cancel(event):
   chat_id = event.message.chat.id
   _ = cache.delete('status_{}'.format(chat_id))
   if _ :
-    await event.respond('success.')
+    await event.respond('success cancel.')
   raise events.StopPropagation
 
 # 查询当前用户的所有订阅
@@ -428,12 +430,14 @@ async def echo(event):
       command, keywords, channels = splitd
       user_id = utils.db.user.get_or_none(chat_id=chat_id)
       result = await join_channel_insert_subscribe(user_id,parse_full_command(command, keywords, channels))
-      if isinstance(result,str): await event.respond(result,parse_mod = None)
-      msg = ''
-      for key,channel in result:
-        msg += '{},{}\n'.format(key,channel)
-      if msg:
-        await event.respond('success:\n'+msg,parse_mode = None)
+      if isinstance(result,str): 
+        await event.respond(result,parse_mode = None) # 提示错误消息
+      else:
+        msg = ''
+        for key,channel in result:
+          msg += 'keyword:{}  channel:{}\n'.format(key,channel)
+        if msg:
+          await event.respond('success subscribe:\n'+msg,parse_mode = None)
 
       cache.delete('status_{}'.format(chat_id))
       raise events.StopPropagation
@@ -449,11 +453,12 @@ async def echo(event):
       command, keywords, channels = splitd
       user_id = utils.db.user.get_or_none(chat_id=chat_id)
       result = update_subscribe(user_id,parse_full_command(command, keywords, channels))
-      msg = ''
-      for key,channel in result:
-        msg += '{},{}\n'.format(key,channel)
-      if msg:
-        await event.respond('success:\n'+msg,parse_mode = None)
+      # msg = ''
+      # for key,channel in result:
+      #   msg += '{},{}\n'.format(key,channel)
+      # if msg:
+      #   await event.respond('success:\n'+msg,parse_mode = None)
+      await event.respond('success unsubscribe..')
 
       cache.delete('status_{}'.format(chat_id))
       raise events.StopPropagation
