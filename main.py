@@ -269,7 +269,7 @@ async def subscribe(event):
     for key,channel in result:
       msg += '{},{}\n'.format(key,channel)
     if msg:
-      await event.respond('success:\n'+msg)
+      await event.respond('success:\n'+msg,parse_mode = None)
 
   raise events.StopPropagation
 
@@ -295,7 +295,7 @@ async def unsubscribe_all(event):
     re_update = utils.db.user_subscribe_list.update(status = 1 ).where(utils.User_subscribe_list.user_id == user_id)#更新状态
     re_update = re_update.execute()# 更新成功返回1，不管是否重复执行
     if re_update:
-      await event.respond('success unsubscribe_all:\n' + msg,link_preview = False)
+      await event.respond('success unsubscribe_all:\n' + msg,link_preview = False,parse_mode = None)
   else:
     await event.respond('not found unsubscribe list')
   raise events.StopPropagation
@@ -327,7 +327,7 @@ async def unsubscribe(event):
     for key,channel in result:
       msg += '{},{}\n'.format(key,channel)
     if msg:
-      await event.respond('success:\n'+msg)
+      await event.respond('success:\n'+msg,parse_mode = None)
 
   raise events.StopPropagation
 
@@ -433,7 +433,7 @@ async def echo(event):
       for key,channel in result:
         msg += '{},{}\n'.format(key,channel)
       if msg:
-        await event.respond('success:\n'+msg)
+        await event.respond('success:\n'+msg,parse_mode = None)
 
       cache.delete('status_{}'.format(chat_id))
       raise events.StopPropagation
@@ -453,7 +453,7 @@ async def echo(event):
       for key,channel in result:
         msg += '{},{}\n'.format(key,channel)
       if msg:
-        await event.respond('success:\n'+msg)
+        await event.respond('success:\n'+msg,parse_mode = None)
 
       cache.delete('status_{}'.format(chat_id))
       raise events.StopPropagation
