@@ -179,7 +179,7 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
       'channel_name':channel_name,
     })
     if find:
-      re_update = utils.db.user_subscribe_list.update(status = 0 ).where(utils.User_subscribe_list.id == find)#更新状态
+      re_update = utils.db.user_subscribe_list.update(status = 0 ).where(utils.User_subscribe_list.id == find.id)#更新状态
       re_update = re_update.execute()# 更新成功返回1，不管是否重复执行
       if re_update:
         result.append((keyword,channel_name))
