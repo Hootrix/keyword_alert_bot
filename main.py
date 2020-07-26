@@ -397,7 +397,7 @@ async def _list(event):
       # msg = 'list:\n'
       for keywords,channel_name in find:
         msg += 'keyword: {}\nchannel: https://t.me/{}\n---\n'.format(keywords,channel_name)
-      await event.respond(msg)
+      await event.respond(msg,parse_mode = None) # 不用任何模式解析 直接输出显示
     else:
       await event.respond('not found list')
   else:
