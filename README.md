@@ -7,6 +7,20 @@ telegram keyword alert bot ⏰
 
 http://t.me/keyword_alert_bot
 
+# USAGE EXAMPLE
+
+```
+# 正则
+# 订阅手机型号关键字：iphone x，排除XR，XS等型号，且忽略大小写
+/subscribe   /(iphone\s*x)(?:[^sr]|$)/ig  https://t.me/com9ji,https://t.me/xiaobaiup
+
+
+# 普通关键字
+# 订阅关键字：免费
+/subscribe   免费    https://t.me/tianfutong
+
+```
+
 
 ## BUILD
 
