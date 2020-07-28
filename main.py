@@ -53,7 +53,9 @@ def js_to_py_re(rx):
 async def on_greeting(event):
     '''Greets someone'''
     # if event.is_group:# 聊天群 类型
-    if not event.is_group:# channel 类型
+    # print(event.message.to_dict())
+    # if not event.is_group:# channel 类型
+    if True:# 所有消息类型，支持群组
       message = event.message
 
       text = message.text
