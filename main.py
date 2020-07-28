@@ -193,7 +193,7 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
       insert_res = utils.db.user_subscribe_list.create(**{
         'user_id':user_id,
         'keywords':keyword,
-        'channel_name':channel_name,
+        'channel_name':channel_name.replace('@',''),
         'create_time':datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
       })
       if insert_res:
