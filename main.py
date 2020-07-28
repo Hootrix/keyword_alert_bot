@@ -92,6 +92,7 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
       """.format(event.chat.username)
       find = utils.db.connect.execute_sql(sql).fetchall()
       if find:
+        print(find)
         for receiver,keywords in find:
           if regex.search(r'^/.*/[a-zA-Z]*?$',keywords):# 输入的为正则字符串
             regex_match = js_to_py_re(keywords)(text)# 进行正则匹配 只支持ig两个flag
