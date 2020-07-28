@@ -100,10 +100,12 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
             if regex_match:# 正则匹配
               # message = '[found](https://t.me/{}/{}) **{}**\n\nregex: **{}**'.format(event.chat.username,message.id,regex_match,keywords)
               message = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,regex_match)
+              print(message)
               await bot.send_message(receiver, message,link_preview = True,parse_mode = 'markdown')
           else:#普通模式
             if keywords in text:
               message = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,keywords)
+              print(message)
               await bot.send_message(receiver, message,link_preview = True,parse_mode = 'markdown')
 
 
