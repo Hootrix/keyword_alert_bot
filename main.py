@@ -52,62 +52,67 @@ def js_to_py_re(rx):
 @client.on(events.NewMessage())
 async def on_greeting(event):
     '''Greets someone'''
-    # if event.is_group:# 聊天群 类型
-    # print(event.message.to_dict())
-    # if not event.is_group:# channel 类型
-    if True:# 所有消息类型，支持群组
-      message = event.message
+    try:
+    
+      # if event.is_group:# 聊天群 类型
+      # print(event.message.to_dict())
+      # if not event.is_group:# channel 类型
+      if True:# 所有消息类型，支持群组
+        message = event.message
 
-      text = message.text
-      if message.file and message.file.name:
-        # text += ' file:{}'.format(message.file.name)# 追加上文件名
-        text += ' {}'.format(message.file.name)# 追加上文件名
+        text = message.text
+        if message.file and message.file.name:
+          # text += ' file:{}'.format(message.file.name)# 追加上文件名
+          text += ' {}'.format(message.file.name)# 追加上文件名
 
-      # 打印消息
-      # print(event.chat.id,event.chat.title,event.message.id,text,'\n\n') 
-      # print( (event.message.get_entities_text()))
+        # 打印消息
+        # print(event.chat.id,event.chat.title,event.message.id,text,'\n\n') 
+        # print( (event.message.get_entities_text()))
 
-      # print( (event.chat.to_dict()))
-      # print( (event.message.document))
-      # print( (event.message.file))
-      
-      # 1。失败方法：转发消息 
-      # chat = 'keyword_alert_bot' #能转发 但是不能真对特定用户。只能转发给当前允许账户的bot
-      # from_chat = 'tianfutong'
-      # chat = 349506543# 无法使用chat_id直接转发 没有任何反应
-      # chat = 1354871670
-      # await message.forward_to('keyword_alert_bot')
-      # await client.forward_messages(chat, message)
-      # await bot.forward_messages(chat, message)
-      # await client.forward_messages(chat, message.id, from_chat)
+        # print( (event.chat.to_dict()))
+        # print( (event.message.document))
+        # print( (event.message.file))
+        
+        # 1。失败方法：转发消息 
+        # chat = 'keyword_alert_bot' #能转发 但是不能真对特定用户。只能转发给当前允许账户的bot
+        # from_chat = 'tianfutong'
+        # chat = 349506543# 无法使用chat_id直接转发 没有任何反应
+        # chat = 1354871670
+        # await message.forward_to('keyword_alert_bot')
+        # await client.forward_messages(chat, message)
+        # await bot.forward_messages(chat, message)
+        # await client.forward_messages(chat, message.id, from_chat)
 
-      # 2.方法：直接发送新消息  而不是转发
+        # 2.方法：直接发送新消息  而不是转发
 
-      # 查找当前频道的所有订阅
-      sql = """
-      select u.chat_id,l.keywords
-from user_subscribe_list as l  
-INNER JOIN user as u on u.id = l.user_id 
-where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
-      """.format(event.chat.username)
-      find = utils.db.connect.execute_sql(sql).fetchall()
-      if find:
-        print(find)
-        for receiver,keywords in find:
-          if regex.search(r'^/.*/[a-zA-Z]*?$',keywords):# 输入的为正则字符串
-            regex_match = js_to_py_re(keywords)(text)# 进行正则匹配 只支持ig两个flag
-            if isinstance(regex_match,regex.Match):
-              regex_match = [regex_match.group()]
-            if regex_match:# 正则匹配
-              # message = '[found](https://t.me/{}/{}) **{}**\n\nregex: **{}**'.format(event.chat.username,message.id,regex_match,keywords)
-              message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,regex_match)
-              print(receiver,message_str)
-              await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
-          else:#普通模式
-            if keywords in text:
-              message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,keywords)
-              print(receiver,message_str)
-              await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
+        # 查找当前频道的所有订阅
+        sql = """
+        select u.chat_id,l.keywords
+  from user_subscribe_list as l  
+  INNER JOIN user as u on u.id = l.user_id 
+  where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
+        """.format(event.chat.username)
+        find = utils.db.connect.execute_sql(sql).fetchall()
+        if find:
+          print(find)
+          for receiver,keywords in find:
+            if regex.search(r'^/.*/[a-zA-Z]*?$',keywords):# 输入的为正则字符串
+              regex_match = js_to_py_re(keywords)(text)# 进行正则匹配 只支持ig两个flag
+              if isinstance(regex_match,regex.Match):
+                regex_match = [regex_match.group()]
+              if regex_match:# 正则匹配
+                # message = '[found](https://t.me/{}/{}) **{}**\n\nregex: **{}**'.format(event.chat.username,message.id,regex_match,keywords)
+                message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,regex_match)
+                print(receiver,message_str)
+                await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
+            else:#普通模式
+              if keywords in text:
+                message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,keywords)
+                print(receiver,message_str)
+                await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
+
+    except Exception as _e:
+      print('ERROR:::{}'.format(_e))
 
 
 # bot相关操作
