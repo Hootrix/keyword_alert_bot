@@ -1,7 +1,7 @@
 # keyword_alert_bot
 telegram keyword alert bot ⏰
 
-用于提醒频道关键字消息
+用于提醒 频道/群组 关键字消息
 
 # DEMO
 
