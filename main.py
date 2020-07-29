@@ -64,7 +64,7 @@ async def on_greeting(event):
         text += ' {}'.format(message.file.name)# 追加上文件名
 
       # 打印消息
-      print(event.chat.id,event.chat.title,event.message.id,text,'\n\n')
+      # print(event.chat.id,event.chat.title,event.message.id,text,'\n\n')
       # print( (event.message.get_entities_text()))
 
       # print( (event.chat.to_dict()))
