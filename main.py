@@ -100,14 +100,14 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
               regex_match = [regex_match.group()]
             if regex_match:# 正则匹配
               # message = '[found](https://t.me/{}/{}) **{}**\n\nregex: **{}**'.format(event.chat.username,message.id,regex_match,keywords)
-              message = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,regex_match)
-              print(receiver,message)
-              await bot.send_message(receiver, message,link_preview = True,parse_mode = 'markdown')
+              message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,regex_match)
+              print(receiver,message_str)
+              await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
           else:#普通模式
             if keywords in text:
-              message = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,keywords)
-              print(receiver,message)
-              await bot.send_message(receiver, message,link_preview = True,parse_mode = 'markdown')
+              message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,keywords)
+              print(receiver,message_str)
+              await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
 
 
 # bot相关操作
