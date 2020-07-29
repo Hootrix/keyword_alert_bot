@@ -110,7 +110,7 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
                 print(receiver,message_str)
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
           except errors.rpcerrorlist.UserIsBlockedError  as _e:
-            print(_e)  # User is blocked (caused by SendMessageRequest)  用户已手动停止bot
+            print('ERROR:::{}'.format(_e))  # User is blocked (caused by SendMessageRequest)  用户已手动停止bot
             pass # 关闭全部订阅
           except ValueError  as _e:
             print('ERROR:::{}'.format(_e))
