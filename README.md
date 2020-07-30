@@ -1,15 +1,30 @@
-# keyword_alert_bot
-telegram keyword alert bot ⏰
+
+# 🤖Telegram keyword alert bot ⏰
+
 
 用于提醒 频道/群组 关键字消息
 
-如果想订阅`群组`消息，确保默认账户可以不用验证的加入该群组
+如果想订阅`群组`消息，确保默认账户可以不用验证的加入该群组。
+
+原理：tg命令行客户端来监听消息，使用bot来发送消息给订阅用户。
+
+👉  Features：
+
+- 关键字消息订阅：根据设定的关键字和频道来发送新消息提醒
+- 支持正则表达式匹配语法
+- 支持多频道订阅 & 多关键字订阅
+- 支持订阅群组消息
+
+👉 Todo:
+
+- 支持私有频道的消息订阅
+- 将 Bot 加入频道 / 群组推送消息 [目前没研究，感觉很少有人需要]
 
 # DEMO
 
 http://t.me/keyword_alert_bot
 
-# USAGE EXAMPLE
+# USAGE
 
 ```
 # 正则
@@ -46,7 +61,7 @@ pipenv shell
 python3 main.py
 ```
 
-## bot command
+## bot help
 
 ```
 
