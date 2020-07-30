@@ -101,7 +101,10 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
                 regex_match = [regex_match.group()]
               regex_match_str = []# 显示内容
               for _ in regex_match:
-                regex_match_str.append(''.join(_) if isinstance(_,tuple) else _) # 合并处理掉空格
+                item = ''.join(_) if isinstance(_,tuple) else _
+                if item:
+                  regex_match_str.append(item) # 合并处理掉空格
+              
 
               if regex_match_str:# 默认 findall()结果
                 # message = '[found](https://t.me/{}/{}) **{}**\n\nregex: **{}**'.format(event.chat.username,message.id,regex_match,keywords)
