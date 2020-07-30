@@ -5,11 +5,6 @@ import re as regex
 import diskcache
 from urllib.parse import urlparse
 from telethon.tl.functions.channels import JoinChannelRequest
-import threading
-# import pathlib
-# import base64
-# import tempfile
-# from telethon.tl.functions.messages import (GetHistoryRequest)
 import yaml
 
 # 配置访问tg服务器的代理
@@ -20,17 +15,13 @@ parent_path = os.path.dirname(os.path.realpath(__file__))# 保存数据文件/�
 conf_path = parent_path + '/config.yml'
 with open(conf_path) as f:
   account = yaml.load(f.read(),Loader = yaml.FullLoader)
-
-cache = diskcache.Cache(parent_path+'/.tmp')# 设置缓存文件目录  当前tmp文件夹
-
+cache = diskcache.Cache(parent_path+'/.tmp')# 设置缓存文件目录  当前tmp文件夹。用于缓存分步执行命令的操作，避免bot无法找到当前输入操作的进度
 client = TelegramClient('{}/.{}_tg_login'.format(parent_path,account['username']), account['api_id'], account['api_hash'], proxy = proxy)
 # client.start(phone=account['phone'])
 client.start()
 
-
-# 设置bot  ，且直接启动
+# 设置bot，且直接启动
 bot = TelegramClient('.{}'.format(account['bot_name']), account['api_id'], account['api_hash'],proxy = proxy).start(bot_token=account['bot_token'])
-
 
 def js_to_py_re(rx):
   '''
@@ -46,14 +37,10 @@ def js_to_py_re(rx):
   # May need to make flags= smarter, but just an example...    
   return lambda L: obj(query, L, flags=regex.I if 'i' in params else 0)
 
-
-# 消息读取客户端
-# with client:
+# client相关操作 目的：读取消息
 @client.on(events.NewMessage())
 async def on_greeting(event):
     '''Greets someone'''
-    # if event.is_group:# 聊天群 类型
-    # print(event.message.to_dict())
     # if not event.is_group:# channel 类型
     if True:# 所有消息类型，支持群组
       message = event.message
@@ -65,13 +52,8 @@ async def on_greeting(event):
 
       # 打印消息
       # print(event.chat.id,event.chat.title,event.message.id,text,'\n\n') 
-      # print( (event.message.get_entities_text()))
 
-      # print( (event.chat.to_dict()))
-      # print( (event.message.document))
-      # print( (event.message.file))
-      
-      # 1。失败方法：转发消息 
+      # 1.方法(失败)：转发消息 
       # chat = 'keyword_alert_bot' #能转发 但是不能真对特定用户。只能转发给当前允许账户的bot
       # from_chat = 'tianfutong'
       # chat = 349506543# 无法使用chat_id直接转发 没有任何反应
@@ -81,7 +63,7 @@ async def on_greeting(event):
       # await bot.forward_messages(chat, message)
       # await client.forward_messages(chat, message.id, from_chat)
 
-      # 2.方法：直接发送新消息  而不是转发
+      # 2.方法：直接发送新消息,非转发.但是可以url预览达到效果
 
       # 查找当前频道的所有订阅
       sql = """
@@ -92,7 +74,7 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
       """.format(event.chat.username)
       find = utils.db.connect.execute_sql(sql).fetchall()
       if find:
-        print(find)
+        print(event.chat.username,find) # 打印当前频道，订阅的用户以及关键字
         for receiver,keywords in find:
           try:
             if regex.search(r'^/.*/[a-zA-Z]*?$',keywords):# 输入的为正则字符串
@@ -104,10 +86,7 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
                 item = ''.join(_) if isinstance(_,tuple) else _
                 if item:
                   regex_match_str.append(item) # 合并处理掉空格
-              
-
               if regex_match_str:# 默认 findall()结果
-                # message = '[found](https://t.me/{}/{}) **{}**\n\nregex: **{}**'.format(event.chat.username,message.id,regex_match,keywords)
                 message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,regex_match_str)
                 print(receiver,message_str)
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
@@ -130,10 +109,7 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
           except Exception as _e:
             print('ERROR:::{}'.format(_e))
 
-
 # bot相关操作
-# with bot:
-
 def parse_url(url):
   """
   解析url信息 
@@ -151,8 +127,6 @@ def parse_url(url):
     result['uri'] += ';'+result['_params']
     del result['_params']
   return result
-
-
 
 def parse_full_command(command, keywords, channels):
   """
@@ -184,18 +158,13 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
       events.StopPropagation: [description]
   """
   res = []
-
   # 加入频道
-  # async def join(c):
-  #   await client(JoinChannelRequest(c))
   for k,c in keyword_channel_list:
     try:
-      # client.loop.run_until_complete(join(c))
       await client(JoinChannelRequest(c))
       res.append((k,c))
     except Exception as _e: # 不存在的频道
       return '无法使用该频道：{}\n\nChannel error, unable to use'.format(c)
-      pass 
     
   # 写入数据表
   result = []
@@ -210,7 +179,6 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
       re_update = re_update.execute()# 更新成功返回1，不管是否重复执行
       if re_update:
         result.append((keyword,channel_name))
-    
     else:
       insert_res = utils.db.user_subscribe_list.create(**{
         'user_id':user_id,
@@ -220,14 +188,12 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
       })
       if insert_res:
         result.append((keyword,channel_name))
-      
   return result
 
 def update_subscribe(user_id,keyword_channel_list):
   """
   更新订阅数据表（取消订阅操作）
   """
-  
   # 修改数据表
   result = []
   for keyword,channel_name in keyword_channel_list:
@@ -241,12 +207,9 @@ def update_subscribe(user_id,keyword_channel_list):
       re_update = re_update.execute()# 更新成功返回1，不管是否重复执行
       if re_update:
         result.append((keyword,channel_name))
-    
     else:
       result.append((keyword,channel_name))
   return result
-
-
 
 @bot.on(events.NewMessage(pattern='/start'))
 async def start(event):
@@ -374,9 +337,10 @@ BUG反馈：https://git.io/JJ0Ey
 
 主要命令：
 
-/subscribe - 订阅操作： `关键字1,关键字2 https://t.me/tianfutong,https://t.me/xiaobaiup`
+/subscribe - 订阅操作： 关键字1,关键字2 https://t.me/tianfutong,https://t.me/xiaobaiup
+/subscribe - 订阅操作： 关键字1,关键字2 tianfutong,xiaobaiup
 
-/unsubscribe - 取消订阅： `关键字1,关键字2 https://t.me/tianfutong,https://t.me/xiaobaiup`
+/unsubscribe - 取消订阅： 关键字1,关键字2 https://t.me/tianfutong,https://t.me/xiaobaiup
 
 /unsubscribe_all - 取消所有订阅
 
@@ -435,9 +399,9 @@ async def _list(event):
   raise events.StopPropagation
 
 
-# 其余的消息统一回复（复读机）
+# 其余消息的统一处理方法
 @bot.on(events.NewMessage)
-async def echo(event):
+async def common(event):
   """Echo the user message."""
   chat_id = event.message.chat.id
   text = event.text
@@ -490,9 +454,6 @@ async def echo(event):
 
       cache.delete('status_{}'.format(chat_id))
       raise events.StopPropagation
-
-  # print(chat_id)
-  # await event.respond('repeat: '+event.text)
   raise events.StopPropagation
 
 
@@ -514,35 +475,7 @@ async def send_message(chat_id,forward_message = None):
     user_id = utils.db.user.get_or_none(chat_id=chat_id)
     if user_id:
       isdel2 = utils.db.user_subscribe_list.delete().where(utils.User_subscribe_list.user_id == user_id.id).execute()
-    # if isdel:# 删除成功
-    #   pass 
-
-
 
 if __name__ == "__main__":
-    # 手动开启bot机器人loop。上面start已经启动了
-    # def bot_loop_worker():
-    #   print('bot started')
-    #   bot.run_until_disconnected()
-    # account_worker = threading.Thread(target=bot_loop_worker,daemon=True,name='bot_loop_worker')
-    # account_worker.start()
-
-    # 开启client loop
+    # 开启client loop。防止进程退出
     client.run_until_disconnected()
-  
-# test
-# async def main():
-#     # You can print the message history of any chat:
-#     # async for message in client.iter_messages('tianfutong'):
-#     # async for message in client.iter_messages('pdf_001'):
-#     #   text = message.text
-#     #   if message.file and message.file.name:
-#     #     text += ' file:{}'.format(message.file.name)
-#     #   print(message.id, text)
-
-#         # You can download media from messages, too!
-#         # The method will return the path where the file was saved.
-#         # if message.photo:
-#         #     path = await message.download_media()
-#         #     print('File saved to', path)  # printed after download is done
-
