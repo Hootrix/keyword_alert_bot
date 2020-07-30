@@ -31,6 +31,8 @@ http://t.me/keyword_alert_bot
 # 使用js正则语法规则，用/包裹正则语句，目前可以使用的匹配模式：i,g
 
 # 订阅手机型号关键字：iphone x，排除XR，XS等型号，且忽略大小写
+/subscribe   /(iphone\s*x)(?:[^sr]|$)/ig  com9ji,xiaobaiup
+
 /subscribe   /(iphone\s*x)(?:[^sr]|$)/ig  https://t.me/com9ji,https://t.me/xiaobaiup
 
 # xx券
