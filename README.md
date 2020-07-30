@@ -3,6 +3,8 @@ telegram keyword alert bot ⏰
 
 用于提醒 频道/群组 关键字消息
 
+如果想订阅`群组`消息，确保默认账户可以不用验证的加入该群组
+
 # DEMO
 
 http://t.me/keyword_alert_bot
