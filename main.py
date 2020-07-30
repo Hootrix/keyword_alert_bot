@@ -456,26 +456,6 @@ async def common(event):
       raise events.StopPropagation
   raise events.StopPropagation
 
-
-# bot发送消息给用户
-async def send_message(chat_id,forward_message = None):
-  try:
-    if forward_message:
-      await bot.forward_messages(chat_id, forward_message)
-    else:
-      await bot.send_message(chat_id, 'test message ')# 发送测试消息
-
-  except errors.rpcerrorlist.UserIsBlockedError  as _e:
-    print(_e)  # User is blocked (caused by SendMessageRequest)  用户已手动停止bot
-    pass # 关闭全部订阅
-  except ValueError  as _e:
-    # print(_e)  # 用户从未使用bot
-    # 删除用户订阅和id
-    isdel = utils.db.user.delete().where(utils.User.chat_id == chat_id).execute()
-    user_id = utils.db.user.get_or_none(chat_id=chat_id)
-    if user_id:
-      isdel2 = utils.db.user_subscribe_list.delete().where(utils.User_subscribe_list.user_id == user_id.id).execute()
-
 if __name__ == "__main__":
     # 开启client loop。防止进程退出
     client.run_until_disconnected()
