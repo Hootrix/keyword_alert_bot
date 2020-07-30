@@ -327,7 +327,7 @@ async def unsubscribe(event):
 async def start(event):
   await event.respond('''
 
-目的：根据关键字订阅频道消息
+目的：根据关键字订阅频道消息，支持群组
 
 BUG反馈：https://git.io/JJ0Ey
 
@@ -347,18 +347,20 @@ BUG反馈：https://git.io/JJ0Ey
 /list - 显示所有订阅列表
 
 ---
+Purpose: Subscribe to channel messages based on keywords. Support groups
 
-Purpose: Subscribe to channel messages based on keywords
+BUG FEEDBACK: https://git.io/JJ0Ey
 
 Multi-keyword and multi-channel subscription support, using comma `,` interval.
 
 Use space between keywords and channels
 
-Main command:
+Main Order.
 
-/subscribe - Subscription operation: `keyword1,keyword2 https://t.me/tianfutong,https://t.me/xiaobaiup`
+/subscribe - Subscription action: keyword 1,keyword 2 https://t.me/tianfutong,https://t.me/xiaobaiup
+/subscribe - Subscription actions: keyword1,keyword2 tianfutong,xiaobaiup
 
-/unsubscribe - unsubscribe: `keyword1,keyword2 https://t.me/tianfutong,https://t.me/xiaobaiup`
+/unsubscribe - unsubscribe: keyword1,keyword2 https://t.me/tianfutong,https://t.me/xiaobaiup
 
 /unsubscribe_all - cancel all subscriptions
 
