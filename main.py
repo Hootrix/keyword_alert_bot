@@ -97,11 +97,15 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
           try:
             if regex.search(r'^/.*/[a-zA-Z]*?$',keywords):# 输入的为正则字符串
               regex_match = js_to_py_re(keywords)(text)# 进行正则匹配 只支持ig两个flag
-              if isinstance(regex_match,regex.Match):
+              if isinstance(regex_match,regex.Match):#search()结果
                 regex_match = [regex_match.group()]
-              if regex_match:# 正则匹配
+              regex_match_str = []# 显示内容
+              for _ in regex_match:
+                regex_match_str.append(''.join(_) if isinstance(_,tuple) else _) # 合并处理掉空格
+
+              if regex_match_str:# 默认 findall()结果
                 # message = '[found](https://t.me/{}/{}) **{}**\n\nregex: **{}**'.format(event.chat.username,message.id,regex_match,keywords)
-                message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,regex_match)
+                message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,regex_match_str)
                 print(receiver,message_str)
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
             else:#普通模式
