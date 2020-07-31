@@ -86,6 +86,7 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
                 item = ''.join(_) if isinstance(_,tuple) else _
                 if item:
                   regex_match_str.append(item) # 合并处理掉空格
+              regex_match_str = list(set(regex_match_str))# 处理重复元素
               if regex_match_str:# 默认 findall()结果
                 message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,regex_match_str)
                 print(receiver,message_str)
