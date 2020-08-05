@@ -292,6 +292,39 @@ async def unsubscribe_all(event):
   raise events.StopPropagation
 
 
+@bot.on(events.NewMessage(pattern='/unsubscribe_id'))
+async def unsubscribe_id(event):
+  '''
+  根据id取消订阅
+  '''
+  chat_id = event.message.chat.id
+  find = utils.db.user.get_or_none(chat_id=chat_id)
+  user_id = find
+  if not find:# 不存在用户信息
+    await event.respond('Failed. Please input /start')
+    raise events.StopPropagation
+  text = event.message.text
+  text = text.replace('，',',')# 替换掉中文逗号
+  text = regex.sub('\s*,\s*',',',text) # 确保英文逗号间隔中间都没有空格  如 "https://t.me/xiaobaiup, https://t.me/com9ji"
+  splitd = [i for i in regex.split('\s+',text) if i]# 删除空元素
+  if len(splitd) > 1:
+    ids = [int(i) for i in splitd[1].split(',')]
+    result = []
+    for i in ids:
+      re_update = utils.db.user_subscribe_list.update(status = 1 ).where(utils.User_subscribe_list.id == i,utils.User_subscribe_list.user_id == user_id)#更新状态
+      re_update = re_update.execute()# 更新成功返回1，不管是否重复执行
+      if re_update:
+        result.append(i)
+    await event.respond('success unsubscribe id:{}'.format(result if result else 'None'))
+  elif len(splitd) < 2:
+    await event.respond('输入需要**取消订阅**的订阅id：\n\nEnter the subscription id of the channel where ** unsubscribe **is required:')
+    cache.set('status_{}'.format(chat_id),{'current_status':'/unsubscribe_id ids','record_value':None},expire=5*60)# 记录输入的关键字
+    raise events.StopPropagation
+  else:
+    await event.respond('not found id')
+  raise events.StopPropagation
+  
+
 @bot.on(events.NewMessage(pattern='/unsubscribe'))
 async def unsubscribe(event):
   """Send a message when the command /unsubscribe is issued."""
@@ -342,6 +375,7 @@ BUG反馈：https://git.io/JJ0Ey
 /subscribe - 订阅操作： 关键字1,关键字2 tianfutong,xiaobaiup
 
 /unsubscribe - 取消订阅： 关键字1,关键字2 https://t.me/tianfutong,https://t.me/xiaobaiup
+/unsubscribe_id - 取消订阅id： 1,2
 
 /unsubscribe_all - 取消所有订阅
 
@@ -362,6 +396,7 @@ Main Order.
 /subscribe - Subscription actions: keyword1,keyword2 tianfutong,xiaobaiup
 
 /unsubscribe - unsubscribe: keyword1,keyword2 https://t.me/tianfutong,https://t.me/xiaobaiup
+/unsubscribe_id - unsubscribe id: 1,2
 
 /unsubscribe_all - cancel all subscriptions
 
@@ -457,6 +492,19 @@ async def common(event):
 
       cache.delete('status_{}'.format(chat_id))
       raise events.StopPropagation
+    elif find['current_status'] == '/unsubscribe_id ids':# 当前输入订阅id
+      splitd =  text.strip().split(',')
+      user_id = utils.db.user.get_or_none(chat_id=chat_id)
+      result = []
+      for i in splitd:
+        if not i.isdigit():
+          continue
+        i = int(i)
+        re_update = utils.db.user_subscribe_list.update(status = 1 ).where(utils.User_subscribe_list.id == i,utils.User_subscribe_list.user_id == user_id)#更新状态
+        re_update = re_update.execute()# 更新成功返回1，不管是否重复执行
+        if re_update:
+          result.append(i)
+      await event.respond('success unsubscribe id:{}'.format(result if result else 'None'))
   raise events.StopPropagation
 
 if __name__ == "__main__":
