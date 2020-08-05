@@ -388,12 +388,12 @@ async def _list(event):
       'chat_id':chat_id,
   })
   if find:
-    find = utils.db.connect.execute_sql('select keywords,channel_name from user_subscribe_list where user_id = %d and status  = %d' % (find.id,0) ).fetchall()
+    find = utils.db.connect.execute_sql('select id,keywords,channel_name from user_subscribe_list where user_id = %d and status  = %d' % (find.id,0) ).fetchall()
     if find:
       msg = ''
       # msg = 'list:\n'
-      for keywords,channel_name in find:
-        msg += 'keyword: {}\nchannel: https://t.me/{}\n---\n'.format(keywords,channel_name)
+      for sub_id,keywords,channel_name in find:
+        msg += 'id:{}\nkeyword: {}\nchannel: https://t.me/{}\n---\n'.format(sub_id,keywords,channel_name)
       await event.respond(msg,parse_mode = None) # 不用任何模式解析 直接输出显示
     else:
       await event.respond('not found list')
