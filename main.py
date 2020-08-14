@@ -37,6 +37,9 @@ def js_to_py_re(rx):
   # May need to make flags= smarter, but just an example...    
   return lambda L: obj(query, L, flags=regex.I if 'i' in params else 0)
 
+def is_regex_str(string):
+  return regex.search(r'^/.*/[a-zA-Z]*?$',string)
+
 # client相关操作 目的：读取消息
 @client.on(events.NewMessage())
 async def on_greeting(event):
@@ -77,7 +80,7 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
         print(event.chat.username,find) # 打印当前频道，订阅的用户以及关键字
         for receiver,keywords in find:
           try:
-            if regex.search(r'^/.*/[a-zA-Z]*?$',keywords):# 输入的为正则字符串
+            if is_regex_str(keywords):# 输入的为正则字符串
               regex_match = js_to_py_re(keywords)(text)# 进行正则匹配 只支持ig两个flag
               if isinstance(regex_match,regex.Match):#search()结果
                 regex_match = [regex_match.group()]
@@ -428,7 +431,8 @@ async def _list(event):
       msg = ''
       # msg = 'list:\n'
       for sub_id,keywords,channel_name in find:
-        msg += 'id:{}\nkeyword: {}\nchannel: https://t.me/{}\n---\n'.format(sub_id,keywords,channel_name)
+        _type = 'regex' if is_regex_str(keywords) else 'keyword'
+        msg += 'id:{}\n{}: {}\nchannel: https://t.me/{}\n---\n'.format(sub_id,_type,keywords,channel_name)
       await event.respond(msg,parse_mode = None) # 不用任何模式解析 直接输出显示
     else:
       await event.respond('not found list')
