@@ -390,7 +390,7 @@ Multi-keyword and multi-channel subscription support, using comma `,` interval.
 
 Use space between keywords and channels
 
-Main Order.
+Main command.
 
 /subscribe - Subscription action: keyword 1,keyword 2 https://t.me/tianfutong,https://t.me/xiaobaiup
 /subscribe - Subscription actions: keyword1,keyword2 tianfutong,xiaobaiup
