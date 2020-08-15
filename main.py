@@ -374,15 +374,27 @@ BUG反馈：https://git.io/JJ0Ey
 
 主要命令：
 
-/subscribe - 订阅操作： 关键字1,关键字2 https://t.me/tianfutong,https://t.me/xiaobaiup
-/subscribe - 订阅操作： 关键字1,关键字2 tianfutong,xiaobaiup
+ - 订阅操作
 
-/unsubscribe - 取消订阅： 关键字1,关键字2 https://t.me/tianfutong,https://t.me/xiaobaiup
-/unsubscribe_id - 取消订阅id： 1,2
+  /subscribe  关键字1,关键字2 tianfutong,xiaobaiup
 
-/unsubscribe_all - 取消所有订阅
+  /subscribe  关键字1,关键字2 https://t.me/tianfutong,https://t.me/xiaobaiup
 
-/list - 显示所有订阅列表
+ - 取消订阅
+
+  /unsubscribe  关键字1,关键字2 https://t.me/tianfutong,https://t.me/xiaobaiup
+
+ - 取消订阅id
+
+  /unsubscribe_id  1,2
+
+ - 取消所有订阅
+
+  /unsubscribe_all
+
+ - 显示所有订阅列表
+
+  /list
 
 ---
 Purpose: Subscribe to channel messages based on keywords. Support groups
@@ -395,15 +407,16 @@ Use space between keywords and channels
 
 Main command:
 
-/subscribe - Subscription action: keyword 1,keyword 2 https://t.me/tianfutong,https://t.me/xiaobaiup
-/subscribe - Subscription actions: keyword1,keyword2 tianfutong,xiaobaiup
+/subscribe  keyword1,keyword2 tianfutong,xiaobaiup
+/subscribe  keyword1,keyword2 https://t.me/tianfutong,https://t.me/xiaobaiup
 
-/unsubscribe - unsubscribe: keyword1,keyword2 https://t.me/tianfutong,https://t.me/xiaobaiup
-/unsubscribe_id - unsubscribe id: 1,2
+/unsubscribe  keyword1,keyword2 https://t.me/tianfutong,https://t.me/xiaobaiup
 
-/unsubscribe_all - cancel all subscriptions
+/unsubscribe_id  1,2
 
-/list - displays a list of all subscriptions
+/unsubscribe_all
+
+/list
 
   ''')
   raise events.StopPropagation
