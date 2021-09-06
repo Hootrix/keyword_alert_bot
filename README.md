@@ -51,7 +51,7 @@ http://t.me/keyword_alert_bot
 ## BUILD
 
 1. 修改config中的配置
-需要给tg账户开通api，创建一个新的bot
+需要给tg账户[开通api](https://my.telegram.org/apps)，再[创建新的bot](https://t.me/BotFather)
 
 2. 创建运行环境运行
 
