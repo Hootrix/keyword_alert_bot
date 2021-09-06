@@ -65,6 +65,8 @@ http://t.me/keyword_alert_bot
 需要python3.7环境
 
 ```
+$ pipenv install
+
 $ pipenv shell
 
 $ python3 ./main.py
