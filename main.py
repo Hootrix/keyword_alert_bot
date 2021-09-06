@@ -17,7 +17,7 @@ with open(conf_path) as f:
   account = yaml.load(f.read(),Loader = yaml.FullLoader)
 cache = diskcache.Cache(parent_path+'/.tmp')# 设置缓存文件目录  当前tmp文件夹。用于缓存分步执行命令的操作，避免bot无法找到当前输入操作的进度
 client = TelegramClient('{}/.{}_tg_login'.format(parent_path,account['username']), account['api_id'], account['api_hash'], proxy = proxy)
-# client.start(phone=account['phone'])
+client.start(phone=account['phone'])
 client.start()
 
 # 设置bot，且直接启动
