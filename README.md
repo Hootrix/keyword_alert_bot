@@ -50,17 +50,24 @@ http://t.me/keyword_alert_bot
 
 ## BUILD
 
-1. 修改config中的配置
-需要给tg账户[开通api](https://my.telegram.org/apps)，再[创建新的bot](https://t.me/BotFather)
+1. 修改config.yml配置
+
+- tg账户[开通api](https://my.telegram.org/apps)
+- [创建新的bot](https://t.me/BotFather)
+
+
+首次运行需要用tg账户接收数字验证码，且需要输入密码
+
+
 
 2. 创建运行环境运行
 
+需要python3.7环境
+
 ```
-pipenv install
+$ pipenv shell
 
-pipenv shell
-
-python3 main.py
+$ python3 ./main.py
 ```
 
 ## bot help
