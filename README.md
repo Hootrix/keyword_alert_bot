@@ -60,7 +60,7 @@ http://t.me/keyword_alert_bot
 
 
 
-2. 创建运行环境运行
+2. 运行
 
 需要python3.7环境
 
