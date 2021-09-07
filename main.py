@@ -98,6 +98,8 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
                 message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,regex_match_str)
                 logger.info(f'REGEX: receiver chat_id:{receiver}, message_str:{message_str}')
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
+              else:
+                logger.debug(f'regex_match empty. regex:{keywords} ,message: t.me/{event.chat.username}/{event.message.id}')
             else:#普通模式
               if keywords in text:
                 message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,keywords)
@@ -117,6 +119,8 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
               isdel2 = utils.db.user_subscribe_list.delete().where(utils.User_subscribe_list.user_id == user_id.id).execute()
           except Exception as _e:
             logger.error(f'{_e}')
+      else:
+        logger.debug(f'sql find empty. event.chat.username:{event.chat.username}, find:{find}, sql:{sql}')
 
 # bot相关操作
 def parse_url(url):
