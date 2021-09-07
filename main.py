@@ -41,6 +41,7 @@ def is_regex_str(string):
   return regex.search(r'^/.*/[a-zA-Z]*?$',string)
 
 # client相关操作 目的：读取消息
+@client.on(events.MessageEdited)
 @client.on(events.NewMessage())
 async def on_greeting(event):
     '''Greets someone'''
