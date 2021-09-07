@@ -12,7 +12,7 @@ from config import config,_current_path as current_path
 
 # 配置访问tg服务器的代理
 proxy = None
-if all(config['proxy']): # 同时不为None
+if all(config['proxy'].values()): # 同时不为None
   logger.info(f'proxy info:{config["proxy"]}')
   proxy = (getattr(socks,config['proxy']['type']), config['proxy']['address'], config['proxy']['port'])
 # proxy = (socks.SOCKS5, '127.0.0.1', 1088)
