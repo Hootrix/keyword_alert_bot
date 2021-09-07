@@ -1,3 +1,4 @@
+#coding=utf-8
 from telethon import TelegramClient, events, sync, errors
 from db import utils
 import socks,os,datetime
@@ -5,9 +6,8 @@ import re as regex
 import diskcache
 from urllib.parse import urlparse
 from telethon.tl.functions.channels import JoinChannelRequest
-import yaml
-from  logger import logger
-from  config import _current_path as current_path,config
+from logger import logger
+from config import config,_current_path as current_path
 
 
 # 配置访问tg服务器的代理
