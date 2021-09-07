@@ -1,13 +1,24 @@
 #账户配置描述信息
 
-# TEST
+# Config BOT and account
+account: 
+  # 监听频道信息的账户
+  api_id : '1400003'
+  api_hash : 'd11xxxxx112a7e059e831'
+  phone : '+86190000010'
+  username : 'cliasaxxxev'
 
-# 监听频道信息的账户
-api_id : '1400003'
-api_hash : 'd11xxxxx112a7e059e831'
-phone : '+86190000010'
-username : 'cliasaxxxev'
+  # 发送消息的bot token
+  bot_token : '1000007:AAHNh8axxxxxxxxxxxxxxxxHA'
+  bot_name : 'keyxxxxxrt_bot'
 
-# 发送消息的bot token
-bot_token : '1000007:AAHNh8axxxxxxxxxxxxxxxxHA'
-bot_name : 'keyxxxxxrt_bot'
+# LOG
+logger:
+  path: null # /root/absolute-path/   default null: _current_path
+  level: INFO # FATAL,ERROR,WARN,INFO,DEBUG,NOTSET
+
+# 代理
+proxy:
+  type: SOCKS5 # e.g. SOCKS4, SOCKS5, HTTP
+  address: null  # e.g. 127.0.0.1
+  port: null # e.g. 1088

@@ -6,17 +6,20 @@ import diskcache
 from urllib.parse import urlparse
 from telethon.tl.functions.channels import JoinChannelRequest
 import yaml
+from  logger import logger
+from  config import _current_path as current_path,config
+
 
 # 配置访问tg服务器的代理
-# proxy = (socks.SOCKS5, '127.0.0.1', 1088)
 proxy = None
+if all(config['proxy']): # 同时不为None
+  logger.info(f'proxy info:{config["proxy"]}')
+  proxy = (getattr(socks,config['proxy']['type']), config['proxy']['address'], config['proxy']['port'])
+# proxy = (socks.SOCKS5, '127.0.0.1', 1088)
 
-parent_path = os.path.dirname(os.path.realpath(__file__))# 保存数据文件/登录会话信息路径  当前目录
-conf_path = parent_path + '/config.yml'
-with open(conf_path) as f:
-  account = yaml.load(f.read(),Loader = yaml.FullLoader)
-cache = diskcache.Cache(parent_path+'/.tmp')# 设置缓存文件目录  当前tmp文件夹。用于缓存分步执行命令的操作，避免bot无法找到当前输入操作的进度
-client = TelegramClient('{}/.{}_tg_login'.format(parent_path,account['username']), account['api_id'], account['api_hash'], proxy = proxy)
+account = config['account']
+cache = diskcache.Cache(current_path+'/.tmp')# 设置缓存文件目录  当前tmp文件夹。用于缓存分步执行命令的操作，避免bot无法找到当前输入操作的进度
+client = TelegramClient('{}/.{}_tg_login'.format(current_path,account['username']), account['api_id'], account['api_hash'], proxy = proxy)
 client.start(phone=account['phone'])
 # client.start()
 
@@ -55,7 +58,7 @@ async def on_greeting(event):
         text += ' {}'.format(message.file.name)# 追加上文件名
 
       # 打印消息
-      # print(event.chat.id,event.chat.title,event.message.id,text,'\n\n') 
+      logger.debug(f'event.chat.id:{event.chat.id},event.chat.title:{event.chat.title},event.message.id:{event.message.id},text:{text}')
 
       # 1.方法(失败)：转发消息 
       # chat = 'keyword_alert_bot' #能转发 但是不能真对特定用户。只能转发给当前允许账户的bot
@@ -78,7 +81,7 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
       """.format(event.chat.username)
       find = utils.db.connect.execute_sql(sql).fetchall()
       if find:
-        print(event.chat.username,find) # 打印当前频道，订阅的用户以及关键字
+        logger.info(f'channel: {event.chat.username}; all chat_id & keywords:{find}') # 打印当前频道，订阅的用户以及关键字
         for receiver,keywords in find:
           try:
             if is_regex_str(keywords):# 输入的为正则字符串
@@ -93,26 +96,27 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
               regex_match_str = list(set(regex_match_str))# 处理重复元素
               if regex_match_str:# 默认 findall()结果
                 message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,regex_match_str)
-                print(receiver,message_str)
+                logger.info(f'REGEX: receiver chat_id:{receiver}, message_str:{message_str}')
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
             else:#普通模式
               if keywords in text:
                 message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,keywords)
-                print(receiver,message_str)
+                logger.info(f'TEXT: receiver chat_id:{receiver}, message_str:{message_str}')
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
           except errors.rpcerrorlist.UserIsBlockedError  as _e:
-            print('ERROR:::{}'.format(_e))  # User is blocked (caused by SendMessageRequest)  用户已手动停止bot
+            # User is blocked (caused by SendMessageRequest)  用户已手动停止bot
+            logger.error(f'{_e}')
             pass # 关闭全部订阅
           except ValueError  as _e:
-            print('ERROR:::{}'.format(_e))
-            # print(_e)  # 用户从未使用bot
+            # 用户从未使用bot
+            logger.error(f'{_e}')
             # 删除用户订阅和id
             isdel = utils.db.user.delete().where(utils.User.chat_id == receiver).execute()
             user_id = utils.db.user.get_or_none(chat_id=receiver)
             if user_id:
               isdel2 = utils.db.user_subscribe_list.delete().where(utils.User_subscribe_list.user_id == user_id.id).execute()
           except Exception as _e:
-            print('ERROR:::{}'.format(_e))
+            logger.error(f'{_e}')
 
 # bot相关操作
 def parse_url(url):
