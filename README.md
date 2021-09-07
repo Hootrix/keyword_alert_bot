@@ -50,7 +50,9 @@ http://t.me/keyword_alert_bot
 
 ## BUILD
 
-1. 修改config.yml配置
+1. config.yml.default --> config.yml
+ 
+ 修改config.yml配置
 
 - tg账户[开通api](https://my.telegram.org/apps)
 - [创建新的bot](https://t.me/BotFather)
