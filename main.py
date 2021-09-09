@@ -267,6 +267,7 @@ async def subscribe(event):
     command, keywords, channels = splitd
     result = await join_channel_insert_subscribe(user_id,parse_full_command(command, keywords, channels))
     if isinstance(result,str): 
+        logger.error('join_channel_insert_subscribe 错误：'+result)
         await event.respond(result,parse_mode = None) # 提示错误消息
     else:
       msg = ''
