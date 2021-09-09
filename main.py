@@ -58,7 +58,7 @@ async def on_greeting(event):
         text += ' {}'.format(message.file.name)# 追加上文件名
 
       # 打印消息
-      logger.debug(f'event.chat.id:{event.chat.id},event.chat.title:{event.chat.title},event.message.id:{event.message.id},text:{text}')
+      logger.debug(f'event.chat.username: {event.chat.username},event.chat.id:{event.chat.id},event.chat.title:{event.chat.title},event.message.id:{event.message.id},text:{text}')
 
       # 1.方法(失败)：转发消息 
       # chat = 'keyword_alert_bot' #能转发 但是不能真对特定用户。只能转发给当前允许账户的bot
