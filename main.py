@@ -102,14 +102,14 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
                   regex_match_str.append(item) # 合并处理掉空格
               regex_match_str = list(set(regex_match_str))# 处理重复元素
               if regex_match_str:# 默认 findall()结果
-                message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,regex_match_str)
+                message_str = f'#{event.chat.username} [#FOUND](https://t.me/{event.chat.username}/{message.id}) **{regex_match_str}**'
                 logger.info(f'REGEX: receiver chat_id:{receiver}, message_str:{message_str}')
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
               else:
                 logger.debug(f'regex_match empty. regex:{keywords} ,message: t.me/{event.chat.username}/{event.message.id}')
             else:#普通模式
               if keywords in text:
-                message_str = '[#FOUND](https://t.me/{}/{}) **{}**'.format(event.chat.username,message.id,keywords)
+                message_str = f'#{event.chat.username} **[#{keywords}](https://t.me/{event.chat.username}/{message.id})**'
                 logger.info(f'TEXT: receiver chat_id:{receiver}, message_str:{message_str}')
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
           except errors.rpcerrorlist.UserIsBlockedError  as _e:
