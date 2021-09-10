@@ -6,9 +6,13 @@ import re as regex
 import diskcache
 from urllib.parse import urlparse
 from telethon.tl.functions.channels import JoinChannelRequest
+from telethon.tl.functions.channels import DeleteHistoryRequest
+from telethon.tl.functions.channels import LeaveChannelRequest, DeleteChannelRequest
 from logger import logger
 from config import config,_current_path as current_path
 
+
+PRODUCTION = False # 是否为生产环境（无代理配置）
 
 # 配置访问tg服务器的代理
 proxy = None
@@ -16,6 +20,9 @@ if all(config['proxy'].values()): # 同时不为None
   logger.info(f'proxy info:{config["proxy"]}')
   proxy = (getattr(socks,config['proxy']['type']), config['proxy']['address'], config['proxy']['port'])
 # proxy = (socks.SOCKS5, '127.0.0.1', 1088)
+else:
+  PRODUCTION = True # 生产环境会退出无用的频道/群组
+
 
 account = config['account']
 cache = diskcache.Cache(current_path+'/.tmp')# 设置缓存文件目录  当前tmp文件夹。用于缓存分步执行命令的操作，避免bot无法找到当前输入操作的进度
@@ -121,6 +128,10 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
             logger.error(f'{_e}')
       else:
         logger.debug(f'sql find empty. event.chat.username:{event.chat.username}, find:{find}, sql:{sql}')
+        if PRODUCTION:
+          logger.info(f'Leave  Channel/group: {event.chat.username}')
+          await leave_channel(event.chat.username)
+
 
 # bot相关操作
 def parse_url(url):
@@ -202,6 +213,22 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
       if insert_res:
         result.append((keyword,channel_name))
   return result
+
+async def leave_channel(channel_name):
+  '''
+  退出无用的频道/组
+
+  Args:
+      channel_name ([type]): [description]
+  '''
+  try:
+      await client(LeaveChannelRequest(channel_name))
+      await client(DeleteChannelRequest(channel_name))
+      await client(DeleteHistoryRequest(channel_name))
+      logger.info(f'退出 {channel_name}')
+  except Exception as _e: # 不存在的频道
+      return f'无法退出该频道：{channel_name}, {_e}'
+      
 
 def update_subscribe(user_id,keyword_channel_list):
   """
