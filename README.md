@@ -87,12 +87,18 @@ $ python3 ./main.py
 
  - update telethon
 
-依赖库telethon可能会有旧版本不可用的情况，最好是通过定时任务去执行依赖更新。
+依赖库telethon可能会有旧版本不可用的情况或者其他BUG，请最好是通过定时任务去执行依赖更新。
 
 e.g. 
 ```
 0 0 1 * * cd /home/keyword_alert_bot && pipenv update telethon > /dev/null 2>&1
 ```
+
+## BUG Q&A
+
+ - 查看日志发现个别群组无法接收消息，软件客户端正常接收
+ 
+ 请尝试更新telethon解决问题🤔，我也很无助。
 
 ## bot help
 
