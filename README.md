@@ -83,6 +83,17 @@ $ pipenv shell
 $ python3 ./main.py
 ```
 
+3. crontab 
+
+ - update telethon
+
+依赖库telethon可能会有旧版本不可用的情况，最好是通过定时任务去执行依赖更新。
+
+e.g. 
+```
+0 0 1 * * cd /home/keyword_alert_bot && pipenv update telethon > /dev/null 2>&1
+```
+
 ## bot help
 
 ```
