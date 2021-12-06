@@ -51,11 +51,20 @@ http://t.me/keyword_alert_bot
 ## BUILD
 
 1. config.yml.default --> config.yml
- 
+
  修改config.yml配置
 
-- tg账户[开通api](https://my.telegram.org/apps)
-- [创建新的bot](https://t.me/BotFather)
+- Create Telelgram Account & API >> 
+
+[开通api](https://my.telegram.org/apps)
+
+  ❗️⚠️请使用新注册的Telegram账户，否则系统会自动退出无用户订阅的频道和群组`
+
+
+- Create BOT 
+
+https://t.me/BotFather
+
 
 
 首次运行需要用tg账户接收数字验证码，且需要输入密码
