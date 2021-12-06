@@ -54,11 +54,11 @@ http://t.me/keyword_alert_bot
 
  修改config.yml配置
 
-- Create Telelgram Account & API >> 
+- Create Telelgram Account & API
 
 [开通api](https://my.telegram.org/apps)
 
-  ❗️⚠️请使用新注册的Telegram账户，否则系统会自动退出无用户订阅的频道和群组`
+  ❗️⚠️请使用新注册的Telegram账户，否则系统会自动退出无用户订阅的频道和群组
 
 
 - Create BOT 
