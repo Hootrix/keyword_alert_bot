@@ -3,7 +3,9 @@
 数据库操作类
 """
 import logging,sys,os,datetime
+import re
 from peewee import MySQLDatabase,BigIntegerField,Model,CharField,DoubleField,IntegerField,CharField,SqliteDatabase,FloatField,SmallIntegerField,DateTimeField
+from peewee import OperationalError
 
 __all__ = [
   'db',
@@ -47,6 +49,10 @@ class User_subscribe_list(_Base):
   """
   user_id = IntegerField(index=True)
   channel_name = CharField(50,null=False)# 频道名称
+  
+  # https://docs.telethon.dev/en/latest/concepts/chats-vs-channels.html#channels
+  chat_id = CharField(50,null=True)# 频道id
+
   keywords = CharField(120,null=False)# 
   status = SmallIntegerField(default=0)# 0 正常 1删除
   create_time = DateTimeField('%Y-%m-%d %H:%M:%S',null=True)
@@ -55,15 +61,50 @@ class User_subscribe_list(_Base):
 class _Db:
   def __init__(self):
     #创建实例类
+    init_class = [
+      User,
+      User_subscribe_list
+    ]
+    for model_class in init_class:
+      try:
+        model = model_class()
+        model.table_exists() or (model.create_table()) #不存在 则创建表
+        
+        # 执行空查询(检测字段缺失的报错 )
+        model.get_or_none(0)
 
-    self.user = User()
-    self.user.table_exists() or (self.user.create_table()) #不存在 则创建表
-    
-    self.user_subscribe_list = User_subscribe_list()
-    self.user_subscribe_list.table_exists() or (self.user_subscribe_list.create_table()) #不存在 则创建表
-    
-    # todo
-    
+        setattr(self,model_class.__name__.lower(),model)
+      except OperationalError as __e:
+        _e = str(__e)
+
+        # 处理字段不存在的报错
+        if 'no such column' in _e:
+          find = re.search('no such column: (?:\w+\.)([a-z_0-9]+)$',_e)
+          if find:
+            field = find.group(1)
+            if hasattr(model_class,field):
+              self.add_column(model_class.__name__.lower(),getattr(model_class,field))
+            else:
+              raise __e
+
+  def add_column(slef,table,field):
+    '''
+    动态添加字段
+
+    https://stackoverflow.com/questions/35012012/peewee-adding-columns-on-demand
+
+    Args:
+        slef ([type]): [description]
+        table ([type]): [description]
+        field ([type]): [description]
+    '''
+    from playhouse.migrate import SqliteMigrator,migrate
+    migrator = SqliteMigrator(_connect)
+    migrate(
+        migrator.add_column(table, field.name, field),
+    )
+
+
   def __del__(self):
     # logger.debug('db connect close')
     # _connect.close()
@@ -71,9 +112,3 @@ class _Db:
 
 db = _Db()
 db.connect = _connect
-
-# bte_params = Bte_params()
-# # a = bte_params.select('*').limit(1)
-
-# a = Bte_params.select().order_by(Bte_params.id.desc()).limit(1).get()
-# print(a.open_price)
