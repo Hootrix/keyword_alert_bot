@@ -84,9 +84,9 @@ async def on_greeting(event):
       select u.chat_id,l.keywords
 from user_subscribe_list as l  
 INNER JOIN user as u on u.id = l.user_id 
-where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
-      """.format(event.chat.username)
-      find = utils.db.connect.execute_sql(sql).fetchall()
+where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create_time  desc
+      """
+      find = utils.db.connect.execute_sql(sql,(event.chat.username,str(event.chat_id))).fetchall()
       if find:
         logger.info(f'channel: {event.chat.username}; all chat_id & keywords:{find}') # 打印当前频道，订阅的用户以及关键字
         for receiver,keywords in find:
