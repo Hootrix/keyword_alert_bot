@@ -51,7 +51,7 @@ class User_subscribe_list(_Base):
   channel_name = CharField(50,null=False)# 频道名称
   
   # https://docs.telethon.dev/en/latest/concepts/chats-vs-channels.html#channels
-  chat_id = CharField(50,null=True)# 频道id
+  chat_id = CharField(50,null=False,default='')# 频道id(非TG官方的id，但是有关联)
 
   keywords = CharField(120,null=False)# 
   status = SmallIntegerField(default=0)# 0 正常 1删除
