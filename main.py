@@ -128,9 +128,11 @@ where l.channel_name = '{}' and l.status = 0  order by l.create_time  desc
             logger.error(f'{_e}')
       else:
         logger.debug(f'sql find empty. event.chat.username:{event.chat.username}, find:{find}, sql:{sql}')
-        if PRODUCTION:
-          logger.info(f'Leave  Channel/group: {event.chat.username}')
-          await leave_channel(event.chat.username)
+
+        # 暂停频道退出操作
+        # if PRODUCTION:
+        #   logger.info(f'Leave  Channel/group: {event.chat.username}')
+        #   await leave_channel(event.chat.username)
 
 
 # bot相关操作
