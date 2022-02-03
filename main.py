@@ -10,6 +10,8 @@ from telethon.tl.functions.channels import DeleteHistoryRequest
 from telethon.tl.functions.channels import LeaveChannelRequest, DeleteChannelRequest
 from logger import logger
 from config import config,_current_path as current_path
+from telethon import utils as telethon_utils
+from telethon.tl.types import PeerChannel
 
 
 PRODUCTION = False # 是否为生产环境（无代理配置）
@@ -84,7 +86,7 @@ async def on_greeting(event):
 
       # 查找当前频道的所有订阅
       sql = """
-      select u.chat_id,l.keywords
+      select u.chat_id,l.keywords,l.id,l.chat_id
 from user_subscribe_list as l  
 INNER JOIN user as u on u.id = l.user_id 
 where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create_time  desc
@@ -92,8 +94,14 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
       find = utils.db.connect.execute_sql(sql,(event.chat.username,str(event.chat_id))).fetchall()
       if find:
         logger.info(f'channel: {event.chat.username}; all chat_id & keywords:{find}') # 打印当前频道，订阅的用户以及关键字
-        for receiver,keywords in find:
+        for receiver,keywords,l_id,l_chat_id in find:
           try:
+            if not l_chat_id:# 未记录频道id
+              # 记录频道id
+              re_update = utils.db.user_subscribe_list.update(chat_id = str(event.chat_id) ).where(utils.User_subscribe_list.id == l_id)
+              re_update.execute()
+            
+            chat_title = event.chat.username or event.chat.title
             if is_regex_str(keywords):# 输入的为正则字符串
               regex_match = js_to_py_re(keywords)(text)# 进行正则匹配 只支持ig两个flag
               if isinstance(regex_match,regex.Match):#search()结果
@@ -105,14 +113,14 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                   regex_match_str.append(item) # 合并处理掉空格
               regex_match_str = list(set(regex_match_str))# 处理重复元素
               if regex_match_str:# 默认 findall()结果
-                message_str = f'#{event.chat.username} [#FOUND](https://t.me/{event.chat.username}/{message.id}) **{regex_match_str}**'
+                message_str = f'# {chat_title} \n\n[#FOUND]({get_channel_url(event)}{message.id}) **{regex_match_str}**'
                 logger.info(f'REGEX: receiver chat_id:{receiver}, message_str:{message_str}')
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
               else:
                 logger.debug(f'regex_match empty. regex:{keywords} ,message: t.me/{event.chat.username}/{event.message.id}')
             else:#普通模式
               if keywords in text:
-                message_str = f'#{event.chat.username} **[#{keywords}](https://t.me/{event.chat.username}/{message.id})**'
+                message_str = f'# {chat_title} \n\n**[#{keywords}]({get_channel_url(event)}{message.id})**'
                 logger.info(f'TEXT: receiver chat_id:{receiver}, message_str:{message_str}')
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
           except errors.rpcerrorlist.UserIsBlockedError  as _e:
@@ -157,6 +165,23 @@ def parse_url(url):
     del result['_params']
   return result
 
+def get_channel_url(event):
+  '''
+  获取频道/群组 url
+
+  https://docs.telethon.dev/en/latest/concepts/chats-vs-channels.html#converting-ids
+
+  Args:
+      event ([type]): [description]
+  '''
+
+  # 判断私有频道（event.is_private 无法判断）
+  is_private = True if not event.chat.username else False
+  host = 'https://t.me/' + ('c/' if is_private else '')
+  real_id, peer_type = telethon_utils.resolve_id(int(event.chat_id))
+  return f'''{host}{real_id}/'''
+
+
 def parse_full_command(command, keywords, channels):
   """
 处理多字段的命令参数  拼接合并返回
@@ -183,26 +208,44 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
   """
   加入频道 且 写入订阅数据表
 
+  支持传入频道id
+
   Raises:
       events.StopPropagation: [description]
   """
   res = []
   # 加入频道
   for k,c in keyword_channel_list:
+    username = c
     try:
+      if c.lstrip('-').isdigit():# 整数
+        real_id, peer_type = telethon_utils.resolve_id(int(c))
+        c = await client.get_entity(real_id)
+        # c.title
+        username = ''
+
       await client(JoinChannelRequest(c))
-      res.append((k,c))
+      res.append((k,username))
     except Exception as _e: # 不存在的频道
       return '无法使用该频道：{}\n\nChannel error, unable to use'.format(c)
     
   # 写入数据表
   result = []
   for keyword,channel_name in res:
+    
+    if isinstance(channel_name,str):
+      chat_id = ''
+    else:# chat entity
+      chat_id = telethon_utils.get_peer_id(PeerChannel(channel_name.id)) #转换为makerid存入
+      channel_name = ''
+
     find = utils.db.user_subscribe_list.get_or_none(**{
-      'user_id':user_id,
-      'keywords':keyword,
-      'channel_name':channel_name,
-    })
+        'user_id':user_id,
+        'keywords':keyword,
+        'channel_name':channel_name,
+        'chat_id':chat_id,
+      })
+
     if find:
       re_update = utils.db.user_subscribe_list.update(status = 0 ).where(utils.User_subscribe_list.id == find.id)#更新状态
       re_update = re_update.execute()# 更新成功返回1，不管是否重复执行
@@ -213,7 +256,8 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
         'user_id':user_id,
         'keywords':keyword,
         'channel_name':channel_name.replace('@',''),
-        'create_time':datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        'create_time':datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'chat_id':chat_id
       })
       if insert_res:
         result.append((keyword,channel_name))
@@ -322,10 +366,13 @@ async def unsubscribe_all(event):
   user_id = find.id
   
   # 查找当前的订阅数据
-  _user_subscribe_list = utils.db.connect.execute_sql('select keywords,channel_name from user_subscribe_list where user_id = %d and status  = %d' % (user_id,0) ).fetchall()
+  _user_subscribe_list = utils.db.connect.execute_sql('select keywords,channel_name,chat_id from user_subscribe_list where user_id = %d and status  = %d' % (user_id,0) ).fetchall()
   if _user_subscribe_list:
     msg = ''
-    for keywords,channel_name in _user_subscribe_list:
+    for keywords,channel_name,chat_id in _user_subscribe_list:
+      if not channel_name:
+        chat_id,_ = telethon_utils.resolve_id(int(chat_id))
+        channel_name = f'c/{chat_id}'
       msg += 'keyword: {}\nchannel: https://t.me/{}\n---\n'.format(keywords,channel_name)
 
     re_update = utils.db.user_subscribe_list.update(status = 1 ).where(utils.User_subscribe_list.user_id == user_id)#更新状态
@@ -481,11 +528,14 @@ async def _list(event):
       'chat_id':chat_id,
   })
   if find:
-    find = utils.db.connect.execute_sql('select id,keywords,channel_name from user_subscribe_list where user_id = %d and status  = %d' % (find.id,0) ).fetchall()
+    find = utils.db.connect.execute_sql('select id,keywords,channel_name,chat_id from user_subscribe_list where user_id = %d and status  = %d' % (find.id,0) ).fetchall()
     if find:
       msg = ''
       # msg = 'list:\n'
-      for sub_id,keywords,channel_name in find:
+      for sub_id,keywords,channel_name,chat_id in find:
+        if not channel_name:
+          chat_id,_ = telethon_utils.resolve_id(int(chat_id))
+          channel_name = f'c/{chat_id}'
         _type = 'regex' if is_regex_str(keywords) else 'keyword'
         msg += 'id:{}\n{}: {}\nchannel: https://t.me/{}\n---\n'.format(sub_id,_type,keywords,channel_name)
       await event.respond(msg,parse_mode = None) # 不用任何模式解析 直接输出显示
