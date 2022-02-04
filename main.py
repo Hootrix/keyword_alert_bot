@@ -564,7 +564,16 @@ async def _list(event):
         # channel_entity2 = await client.get_entity('@tianfutong')
         # channel_entity3 = await client.get_entity(-1001242421091)
         # channel_entity4 = await client.get_entity(1242421091)
-        channel_entity = await client.get_entity(_entity)# 获取频道相关信息
+        try:
+          channel_entity = await client.get_entity(_entity)# 获取频道相关信息
+        except ValueError as _e:# 频道不存在报错
+          pass
+          # logger.info(f'delete user_subscribe_list channel id:{sub_id} _entity:{_entity}')
+          # re_update = utils.db.user_subscribe_list.update(status = 1 ).where(utils.User_subscribe_list.id == sub_id)
+          # re_update.execute()
+          class channel_entity: username='';title=''
+
+
         # channel_entity.title
         # channel_entity.username
         channel_title = f'channel title: {channel_entity.title}\n'
