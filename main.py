@@ -96,6 +96,17 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
         logger.info(f'channel: {event.chat.username}; all chat_id & keywords:{find}') # 打印当前频道，订阅的用户以及关键字
         for receiver,keywords,l_id,l_chat_id in find:
           try:
+
+            # 优先返回可预览url
+            channel_url = f'https://t.me/{event.chat.username}/' if event.chat.username else get_channel_url(event.chat.username,event.chat_id)
+            channel_url= f'{channel_url}{message.id}'
+            send_cache_key = f'_LAST_{l_id}_{message.id}_send'
+            if isinstance(event,events.MessageEdited.Event):# 编辑事件
+              # 24小时内新建2秒后的编辑不提醒
+              if cache.get(send_cache_key) and (event.message.edit_date - event.message.date) > datetime.timedelta(seconds=2): 
+                logger.error(f'{channel_url} repeat send. deny!')
+                continue
+
             if not l_chat_id:# 未记录频道id
               # 记录频道id
               re_update = utils.db.user_subscribe_list.update(chat_id = str(event.chat_id) ).where(utils.User_subscribe_list.id == l_id)
@@ -116,6 +127,8 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                 # # {chat_title} \n\n
                 message_str = f'[#FOUND]({get_channel_url(event.chat.username,event.chat_id)}{message.id}) **{regex_match_str}**'
                 logger.info(f'REGEX: receiver chat_id:{receiver}, message_str:{message_str}')
+                if isinstance(event,events.NewMessage.Event):# 新建事件
+                  cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
               else:
                 logger.debug(f'regex_match empty. regex:{keywords} ,message: t.me/{event.chat.username}/{event.message.id}')
@@ -124,6 +137,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                 # # {chat_title} \n\n
                 message_str = f'**[#{keywords}]({get_channel_url(event.chat.username,event.chat_id)}{message.id})**'
                 logger.info(f'TEXT: receiver chat_id:{receiver}, message_str:{message_str}')
+                  cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
           except errors.rpcerrorlist.UserIsBlockedError  as _e:
             # User is blocked (caused by SendMessageRequest)  用户已手动停止bot
