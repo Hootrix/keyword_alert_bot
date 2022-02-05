@@ -60,6 +60,9 @@ async def on_greeting(event):
     '''Greets someone'''
     # telethon.events.newmessage.NewMessage.Event
     # telethon.events.messageedited.MessageEdited.Event
+    if event.chat.username == account['bot_name']: # 不监听当前机器人消息
+      logger.debug(f'不监听当前机器人消息, event.chat.username: { event.chat.username }')
+      raise events.StopPropagation
 
     # if not event.is_group:# channel 类型
     if True:# 所有消息类型，支持群组
@@ -126,7 +129,8 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               regex_match_str = list(set(regex_match_str))# 处理重复元素
               if regex_match_str:# 默认 findall()结果
                 # # {chat_title} \n\n
-                message_str = f'[#FOUND]({channel_url}) **{regex_match_str}**'
+                channel_title = f"\n\nCHANNEL: {chat_title}" if not event.chat.username else ""
+                message_str = f'[#FOUND]({channel_url}) **{regex_match_str}**{channel_title}'
                 logger.info(f'REGEX: receiver chat_id:{receiver}, message_str:{message_str}')
                 if isinstance(event,events.NewMessage.Event):# 新建事件
                   cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
@@ -136,7 +140,8 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
             else:#普通模式
               if keywords in text:
                 # # {chat_title} \n\n
-                message_str = f'[#FOUND]({channel_url}) **{keywords}**'
+                channel_title = f"\n\nCHANNEL: {chat_title}" if not event.chat.username else ""
+                message_str = f'[#FOUND]({channel_url}) **{keywords}**{channel_title}'
                 logger.info(f'TEXT: receiver chat_id:{receiver}, message_str:{message_str}')
                 if isinstance(event,events.NewMessage.Event):# 新建事件
                   cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
@@ -555,47 +560,48 @@ async def _list(event):
     find = utils.db.connect.execute_sql('select id,keywords,channel_name,chat_id from user_subscribe_list where user_id = %d and status  = %d' % (find.id,0) ).fetchall()
     if find:
       msg = ''
-      # msg = 'list:\n'
       for sub_id,keywords,channel_name,chat_id in find:
         _type = 'regex' if is_regex_str(keywords) else 'keyword'
         channel_url = get_channel_url(channel_name,chat_id)
-        _entity = int(chat_id) if chat_id else channel_name
-        # channel_entity1 = await client.get_entity('tianfutong')
-        # channel_entity2 = await client.get_entity('@tianfutong')
-        # channel_entity3 = await client.get_entity(-1001242421091)
-        # channel_entity4 = await client.get_entity(1242421091)
-        try:
-          channel_entity = await client.get_entity(_entity)# 获取频道相关信息
-        except ValueError as _e:# 频道不存在报错
-          pass
-          # logger.info(f'delete user_subscribe_list channel id:{sub_id} _entity:{_entity}')
-          # re_update = utils.db.user_subscribe_list.update(status = 1 ).where(utils.User_subscribe_list.id == sub_id)
-          # re_update.execute()
-          class channel_entity: username='';title=''
+        
+        channel_entity = None # TODO 不执行实体信息读取  否则会无响应
+        # _entity = int(chat_id) if chat_id else channel_name
+        # # channel_entity1 = await client.get_entity('tianfutong')
+        # # channel_entity2 = await client.get_entity('@tianfutong')
+        # # channel_entity3 = await client.get_entity(-1001242421091)
+        # # channel_entity4 = await client.get_entity(1242421091)
+        # try:
+        #   channel_entity = await client.get_entity(_entity)# 获取频道相关信息
+        # except ValueError as _e:# 频道不存在报错
+        #   pass
+        #   # logger.info(f'delete user_subscribe_list channel id:{sub_id} _entity:{_entity}')
+        #   # re_update = utils.db.user_subscribe_list.update(status = 1 ).where(utils.User_subscribe_list.id == sub_id)
+        #   # re_update.execute()
+        #   class channel_entity: username='';title=''
 
-
-        # channel_entity.title
-        # channel_entity.username
-        channel_title = f'channel title: {channel_entity.title}\n'
+        channel_title = ''
+        if channel_entity and channel_entity.title:channel_title = f'channel title: {channel_entity.title}\n'
         
         if channel_name:
-          if channel_entity.username:
-            if channel_entity.username != channel_name:
-              channel_name += '\t[CHANNEL NAME EXPIRED]'# 标记频道名称过期
+          if channel_entity:
+            if channel_entity.username:
+              if channel_entity.username != channel_name:
+                channel_name += '\t[CHANNEL NAME EXPIRED]'# 标记频道名称过期
+                # channel_name = '' # 不显示
+                logger.info(f'channel username:{channel_name} expired.')
+            else:
+              channel_name += '\t[CHANNEL NONE EXPIRED]'# 标记频道名称过期.当前不存在
               # channel_name = '' # 不显示
-              logger.info(f'channel username:{channel_name} expired.')
-          else:
-            channel_name += '\t[CHANNEL NONE EXPIRED]'# 标记频道名称过期.当前不存在
-            # channel_name = '' # 不显示
-            logger.info(f'channel username:{channel_name} expired. current none')
+              logger.info(f'channel username:{channel_name} expired. current none')
         elif chat_id:# 只有chat_id
-          if channel_entity.username:
+          if channel_entity and channel_entity.username:
             channel_name = channel_entity.username
             logger.info(f'channel chat_id:{chat_id} username:{channel_name}')
 
         channel_username = ''
-        if channel_name:
-          channel_username = f'channel username: {channel_name}\n'
+        if channel_entity:# 有实体信息才显示频道名
+          if channel_name:
+            channel_username = f'channel username: {channel_name}\n'
 
         msg += f'id:{sub_id}\n{_type}: {keywords}\n{channel_title}{channel_username}channel url: {channel_url}\n---\n'
       await event.respond(msg,parse_mode = None) # 不用任何模式解析 直接输出显示
