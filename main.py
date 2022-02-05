@@ -259,9 +259,12 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
         chat_id = telethon_utils.get_peer_id(PeerChannel(channel_entity.id)) # 转换为marked_id 
       
       if channel_entity.username: username = channel_entity.username
-
-      await client(JoinChannelRequest(channel_entity))
-      res.append((k,username,chat_id))
+      
+      if channel_entity and not channel_entity.left: # 已加入该频道
+        res.append((k,username,chat_id))
+      else:
+        await client(JoinChannelRequest(channel_entity))
+        res.append((k,username,chat_id))
     except Exception as _e: # 不存在的频道
       logger.error(f'{c} JoinChannelRequest ERROR:{_e}')
       return '无法使用该频道：{}\n\nChannel error, unable to use: {}'.format(c,_e)
