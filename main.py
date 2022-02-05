@@ -255,7 +255,7 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
         chat_id = telethon_utils.get_peer_id(PeerChannel(real_id)) # 转换为marked_id 
         # channel_entity.title
       else:# 传入普通名称
-        channel_entity = await client.get_entity(c)
+        channel_entity = await client.get_entity(c) # get_entity频繁请求会有报错 A wait of 19964 seconds is required (caused by ResolveUsernameRequest)
         chat_id = telethon_utils.get_peer_id(PeerChannel(channel_entity.id)) # 转换为marked_id 
       
       if channel_entity.username: username = channel_entity.username
@@ -267,7 +267,21 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
         res.append((k,username,chat_id))
     except Exception as _e: # 不存在的频道
       logger.error(f'{c} JoinChannelRequest ERROR:{_e}')
-      return '无法使用该频道：{}\n\nChannel error, unable to use: {}'.format(c,_e)
+      
+      # 查询本地记录是否存在
+      channel_name_or_chat_id = regex.sub(r'^(?:http[s]?://)?t.me/(?:c/)?','',c) # 清洗多余信息
+      find = utils.db.connect.execute_sql('select 1 from user_subscribe_list where status = 0 and (channel_name = ? or chat_id = ?)' ,(channel_name_or_chat_id,channel_name_or_chat_id)).fetchall()
+      logger.warning(f'{c} JoinChannelRequest fail. cache join. cache find count: {len(find)}')
+      if find:
+        if len(find) > 1: # 存在1条以上的记录 则直接返回加入成功
+          if channel_name_or_chat_id.lstrip('-').isdigit():# 整数
+            res.append((k,'',channel_name_or_chat_id))
+          else:
+            res.append((k,channel_name_or_chat_id,''))
+        else:
+          return '无法使用该频道：{}\n\nChannel error, unable to use: {}'.format(c,_e)
+      else:
+        return '无法使用该频道：{}\n\nChannel error, unable to use: {}'.format(c,_e)
     
   # 写入数据表
   result = []
@@ -381,8 +395,9 @@ async def subscribe(event):
     else:
       msg = ''
       for key,channel,_chat_id in result:
-        chat_id, peer_type = telethon_utils.resolve_id(int(_chat_id))
-        msg += 'keyword:{}  channel:{}\n'.format(key,(channel if channel else f't.me/c/{chat_id}'))
+        if _chat_id:
+          _chat_id, peer_type = telethon_utils.resolve_id(int(_chat_id))
+        msg += 'keyword:{}  channel:{}\n'.format(key,(channel if channel else f't.me/c/{_chat_id}'))
       if msg:
         await event.respond('success subscribe:\n'+msg,parse_mode = None)
   raise events.StopPropagation
@@ -644,8 +659,9 @@ async def common(event):
       else:
         msg = ''
         for key,channel,_chat_id in result:
-          chat_id, peer_type = telethon_utils.resolve_id(int(_chat_id))
-          msg += 'keyword:{}  channel:{}\n'.format(key,(channel if channel else f't.me/c/{chat_id}'))
+          if _chat_id:
+            _chat_id, peer_type = telethon_utils.resolve_id(int(_chat_id))
+          msg += 'keyword:{}  channel:{}\n'.format(key,(channel if channel else f't.me/c/{_chat_id}'))
         if msg:
           await event.respond('success subscribe:\n'+msg,parse_mode = None)
 
