@@ -17,7 +17,7 @@
 
 👉 Todo:
 
-- 支持私有频道的消息订阅
+- ✅支持私有频道的消息订阅
 - 将 Bot 加入频道 / 群组推送消息 [目前没研究，感觉很少有人需要]
 
 # DEMO
@@ -58,7 +58,7 @@ http://t.me/keyword_alert_bot
 
 [开通api](https://my.telegram.org/apps)
 
-  ❗️⚠️请使用新注册的Telegram账户，否则系统会自动退出无用户订阅的频道和群组
+  建议请使用新注册的Telegram账户
 
 
 - Create BOT 
