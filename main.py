@@ -603,8 +603,9 @@ async def _list(event):
           if channel_name:
             channel_username = f'channel username: {channel_name}\n'
 
+        channel_url = f'<a href="{channel_url}">{"https://t.me/"+channel_name if channel_name else channel_url}</a>'
         msg += f'id:{sub_id}\n{_type}: {keywords}\n{channel_title}{channel_username}channel url: {channel_url}\n---\n'
-      await event.respond(msg,parse_mode = None) # 不用任何模式解析 直接输出显示
+      await event.respond(msg,parse_mode = 'HTML') # 不用任何模式解析 直接输出显示
     else:
       await event.respond('not found list')
   else:
