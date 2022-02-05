@@ -263,8 +263,8 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
       await client(JoinChannelRequest(channel_entity))
       res.append((k,username,chat_id))
     except Exception as _e: # 不存在的频道
-      logger.error(f'JoinChannelRequest ERROR:{_e}')
-      return '无法使用该频道：{}\n\nChannel error, unable to use'.format(c)
+      logger.error(f'{c} JoinChannelRequest ERROR:{_e}')
+      return '无法使用该频道：{}\n\nChannel error, unable to use: {}'.format(c,_e)
     
   # 写入数据表
   result = []
