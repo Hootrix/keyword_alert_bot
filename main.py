@@ -287,7 +287,7 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
         'keywords':keyword,
         'channel_name':channel_name.replace('@',''),
         'create_time':datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'chat_id':chat_id
+        'chat_id':_chat_id
       })
       if insert_res:
         result.append((keyword,channel_name,_chat_id))
