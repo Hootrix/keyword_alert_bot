@@ -15,11 +15,6 @@
 - 支持多频道订阅 & 多关键字订阅
 - 支持订阅群组消息
 
-👉 Todo:
-
-- ✅支持私有频道的消息订阅
-- 将 Bot 加入频道 / 群组推送消息 [目前没研究，感觉很少有人需要]
-
 # DEMO
 
 http://t.me/keyword_alert_bot
@@ -47,51 +42,36 @@ http://t.me/keyword_alert_bot
 
 ```
 
+## 给小白看的安装过程
 
-## BUILD
-
-1. config.yml.default --> config.yml
-
- 修改config.yml配置
-
-- Create Telelgram Account & API
-
-[开通api](https://my.telegram.org/apps)
-
-  建议请使用新注册的Telegram账户
-
-
-- Create BOT 
-
-https://t.me/BotFather
-
-
-
-首次运行需要用tg账户接收数字验证码，且需要输入密码
-
-
-
-2. 运行
-
-需要python3.7环境
-
+https://my.telegram.org/apps 获得
 ```
-$ pipenv install
-
-$ pipenv shell
-
-$ python3 ./main.py
+api_id
+api_hash
 ```
 
-3. crontab 
-
- - update telethon
-
-依赖库telethon可能会有旧版本不可用的情况或者其他BUG，请最好是通过定时任务去执行依赖更新。
-
-e.g. 
+@botfather /newbot 获得
 ```
-0 0 1 * * cd /home/keyword_alert_bot && pipenv update telethon > /dev/null 2>&1
+bot_token
+bot_name
+```
+
+依次执行命令
+```
+cd /etc/
+wget https://github.com/Hootrix/keyword_alert_bot/archive/refs/heads/master.zip
+unzip master.zip
+cd keyword_alert_bot-master/
+
+nano config.yml.default
+mv config.yml.default config.yml
+
+apt update
+apt install -y pip
+pip3 install telethon peewee PySocks diskcache PyYAML
+
+crontab -e
+@reboot ( sleep 90 ; python3 /etc/keyword_alert_bot-master/main.py )
 ```
 
 ## BUG Q&A
