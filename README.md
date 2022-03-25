@@ -121,3 +121,11 @@ Main command:
 
 /list - displays a list of all subscriptions
 ```
+
+## Tips
+如果连续多次添加群组报错 A wait of 85685 seconds is required (caused by ResolveUsernameRequest)
+
+参考这个方法找到群组的数字ID https://zelikk.blogspot.com/2022/03/telegram-bot-ResolveUsernameRequest-channel-id.html
+```
+/subscribe keyword1 数字ID
+```
