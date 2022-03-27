@@ -26,7 +26,6 @@ if all(config['proxy'].values()): # 同时不为None
 else:
   PRODUCTION = True # 生产环境会退出无用的频道/群组
 
-
 account = config['account']
 cache = diskcache.Cache(current_path+'/.tmp')# 设置缓存文件目录  当前tmp文件夹。用于缓存分步执行命令的操作，避免bot无法找到当前输入操作的进度
 client = TelegramClient('{}/.{}_tg_login'.format(current_path,account['username']), account['api_id'], account['api_hash'], proxy = proxy)
@@ -64,6 +63,10 @@ async def on_greeting(event):
       logger.debug(f'不监听当前机器人消息, event.chat.username: { event.chat.username }')
       raise events.StopPropagation
 
+    if event.chat.username.endswith("bot"): # 结尾为bot 是机器人的用户名
+      logger.debug(f'不监听所有机器人的消息, event.chat.username: { event.chat.username }')
+      raise events.StopPropagation
+
     # if not event.is_group:# channel 类型
     if True:# 所有消息类型，支持群组
       message = event.message
@@ -90,7 +93,7 @@ async def on_greeting(event):
 
       # 查找当前频道的所有订阅
       sql = """
-      select u.chat_id,l.keywords,l.id,l.chat_id
+select u.chat_id,l.keywords,l.id,l.chat_id
 from user_subscribe_list as l  
 INNER JOIN user as u on u.id = l.user_id 
 where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create_time  desc
@@ -117,6 +120,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               re_update.execute()
             
             chat_title = event.chat.username or event.chat.title
+
             if is_regex_str(keywords):# 输入的为正则字符串
               regex_match = js_to_py_re(keywords)(text)# 进行正则匹配 只支持ig两个flag
               if isinstance(regex_match,regex.Match):#search()结果
@@ -135,6 +139,9 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                 if isinstance(event,events.NewMessage.Event):# 新建事件
                   cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
+
+                #匹配多项keyword只返回一次
+                raise events.StopPropagation  
               else:
                 logger.debug(f'regex_match empty. regex:{keywords} ,message: t.me/{event.chat.username}/{event.message.id}')
             else:#普通模式
@@ -146,6 +153,9 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                 if isinstance(event,events.NewMessage.Event):# 新建事件
                   cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
                 await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
+
+                #匹配多项keyword只返回一次
+                raise events.StopPropagation  
           except errors.rpcerrorlist.UserIsBlockedError  as _e:
             # User is blocked (caused by SendMessageRequest)  用户已手动停止bot
             logger.error(f'{_e}')
