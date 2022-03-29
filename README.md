@@ -70,11 +70,11 @@ apt update
 apt install -y pip screen
 pip3 install telethon peewee PySocks diskcache PyYAML
 
-screen -S tgbot
-python3 /etc/keyword_alert_bot-master/main.py
-
 crontab -e
 @reboot ( sleep 90 ; python3 /etc/keyword_alert_bot-master/main.py )
+
+screen -S tgbot
+python3 /etc/keyword_alert_bot-master/main.py
 ```
 
 ## BUG Q&A
