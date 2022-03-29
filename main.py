@@ -59,14 +59,15 @@ async def on_greeting(event):
     '''Greets someone'''
     # telethon.events.newmessage.NewMessage.Event
     # telethon.events.messageedited.MessageEdited.Event
+
     if event.chat.username == account['bot_name']: # 不监听当前机器人消息
       logger.debug(f'不监听当前机器人消息, event.chat.username: { event.chat.username }')
       raise events.StopPropagation
 
-    if event.chat.username.endswith("bot"): # 结尾为bot 是机器人的用户名
-      logger.debug(f'不监听所有机器人的消息, event.chat.username: { event.chat.username }')
-      raise events.StopPropagation
-
+    if str(event.message.sender.username).endswith('bot'): # 不监听所有机器人发的消息
+      logger.debug(f'不监听所有机器人消息, event.chat.username: { event.chat.username }')
+      raise events.StopPropagation      
+      
     # if not event.is_group:# channel 类型
     if True:# 所有消息类型，支持群组
       message = event.message
@@ -78,7 +79,7 @@ async def on_greeting(event):
 
       # 打印消息
       logger.debug(f'event.chat.username: {event.chat.username},event.chat.id:{event.chat.id},event.chat.title:{event.chat.title},event.message.id:{event.message.id},text:{text}')
-
+      
       # 1.方法(失败)：转发消息 
       # chat = 'keyword_alert_bot' #能转发 但是不能真对特定用户。只能转发给当前允许账户的bot
       # from_chat = 'tianfutong'
@@ -138,7 +139,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                 logger.info(f'REGEX: receiver chat_id:{receiver}, message_str:{message_str}')
                 if isinstance(event,events.NewMessage.Event):# 新建事件
                   cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
-                await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
+                await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')                
 
                 #匹配多项keyword只返回一次
                 raise events.StopPropagation  
