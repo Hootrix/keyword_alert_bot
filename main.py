@@ -121,8 +121,8 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               re_update = utils.db.user_subscribe_list.update(chat_id = str(event.chat_id) ).where(utils.User_subscribe_list.id == l_id)
               re_update.execute()
             
-            chat_title = event.chat.username or event.chat.title
-            channel_title = f"\n\nCHANNEL: {chat_title}" if event.chat.username is not None else ""
+            chat_title = f'@{event.chat.username}' if event.chat.username is not None else ""
+            channel_title = f" CHANNEL: {chat_title}"
 
             if is_regex_str(keywords):# 输入的为正则字符串
               regex_match = js_to_py_re(keywords)(text)# 进行正则匹配 只支持ig两个flag
@@ -136,7 +136,8 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               regex_match_str = list(set(regex_match_str))# 处理重复元素
               if regex_match_str:# 默认 findall()结果
                 # # {chat_title} \n\n
-                message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}** {channel_title} @{sender_username}'
+                # message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}** {channel_title} @{sender_username}'
+                message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}** @{sender_username}'
                 logger.info(f'REGEX: receiver chat_id:{receiver}, message_str:{message_str}')
                 if isinstance(event,events.NewMessage.Event):# 新建事件
                   cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
@@ -150,7 +151,8 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
             else:#普通模式
               if keywords in text:
                 # # {chat_title} \n\n
-                message_str = f'[#FOUND]({channel_msg_url}) **{keywords}** {channel_title} @{sender_username}'
+                # message_str = f'[#FOUND]({channel_msg_url}) **{keywords}** {channel_title} @{sender_username}'
+                message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}** @{sender_username}'
                 logger.info(f'TEXT: receiver chat_id:{receiver}, message_str:{message_str}')
                 if isinstance(event,events.NewMessage.Event):# 新建事件
                   cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
