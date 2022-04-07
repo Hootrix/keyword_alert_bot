@@ -64,7 +64,8 @@ async def on_greeting(event):
       logger.debug(f'不监听当前机器人消息, event.chat.username: { event.chat.username }')
       raise events.StopPropagation
 
-    if str(event.message.sender.username).endswith('bot'): # 不监听所有机器人发的消息
+    sender_username = event.message.sender.username if event.message.sender.username is not None else '' 
+    if sender_username.lower().endswith('bot'): # 不监听所有机器人发的消息
       logger.debug(f'不监听所有机器人消息, event.chat.username: { event.chat.username }')
       raise events.StopPropagation      
       
@@ -107,12 +108,12 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
 
             # 优先返回可预览url
             channel_url = f'https://t.me/{event.chat.username}/' if event.chat.username else get_channel_url(event.chat.username,event.chat_id)
-            channel_url= f'{channel_url}{message.id}'
+            channel_msg_url= f'{channel_url}{message.id}'
             send_cache_key = f'_LAST_{l_id}_{message.id}_send'
             if isinstance(event,events.MessageEdited.Event):# 编辑事件
               # 24小时内新建2秒后的编辑不提醒
               if cache.get(send_cache_key) and (event.message.edit_date - event.message.date) > datetime.timedelta(seconds=2): 
-                logger.error(f'{channel_url} repeat send. deny!')
+                logger.error(f'{channel_msg_url} repeat send. deny!')
                 continue
 
             if not l_chat_id:# 未记录频道id
@@ -121,6 +122,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               re_update.execute()
             
             chat_title = event.chat.username or event.chat.title
+            channel_title = f"\n\nCHANNEL: {chat_title}" if event.chat.username is not None else ""
 
             if is_regex_str(keywords):# 输入的为正则字符串
               regex_match = js_to_py_re(keywords)(text)# 进行正则匹配 只支持ig两个flag
@@ -134,8 +136,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               regex_match_str = list(set(regex_match_str))# 处理重复元素
               if regex_match_str:# 默认 findall()结果
                 # # {chat_title} \n\n
-                channel_title = f"\n\nCHANNEL: {chat_title}" if not event.chat.username else ""
-                message_str = f'[#FOUND]({channel_url}) **{regex_match_str}**{channel_title}'
+                message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}** {channel_title} @{sender_username}'
                 logger.info(f'REGEX: receiver chat_id:{receiver}, message_str:{message_str}')
                 if isinstance(event,events.NewMessage.Event):# 新建事件
                   cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
@@ -143,13 +144,13 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
 
                 #匹配多项keyword只返回一次
                 raise events.StopPropagation  
+
               else:
                 logger.debug(f'regex_match empty. regex:{keywords} ,message: t.me/{event.chat.username}/{event.message.id}')
             else:#普通模式
               if keywords in text:
                 # # {chat_title} \n\n
-                channel_title = f"\n\nCHANNEL: {chat_title}" if not event.chat.username else ""
-                message_str = f'[#FOUND]({channel_url}) **{keywords}**{channel_title}'
+                message_str = f'[#FOUND]({channel_msg_url}) **{keywords}** {channel_title} @{sender_username}'
                 logger.info(f'TEXT: receiver chat_id:{receiver}, message_str:{message_str}')
                 if isinstance(event,events.NewMessage.Event):# 新建事件
                   cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
@@ -157,6 +158,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
 
                 #匹配多项keyword只返回一次
                 raise events.StopPropagation  
+
           except errors.rpcerrorlist.UserIsBlockedError  as _e:
             # User is blocked (caused by SendMessageRequest)  用户已手动停止bot
             logger.error(f'{_e}')
@@ -410,7 +412,8 @@ async def subscribe(event):
           _chat_id, peer_type = telethon_utils.resolve_id(int(_chat_id))
         msg += 'keyword:{}  channel:{}\n'.format(key,(channel if channel else f't.me/c/{_chat_id}'))
       if msg:
-        await event.respond('success subscribe:\n'+msg,parse_mode = None)
+        # await event.respond('success subscribe:\n'+msg,parse_mode = None)
+        await event.respond('success subscribe: {}'.format(channel if channel else f't.me/c/{_chat_id}'), parse_mode = None)
   raise events.StopPropagation
 
 
@@ -674,7 +677,8 @@ async def common(event):
             _chat_id, peer_type = telethon_utils.resolve_id(int(_chat_id))
           msg += 'keyword:{}  channel:{}\n'.format(key,(channel if channel else f't.me/c/{_chat_id}'))
         if msg:
-          await event.respond('success subscribe:\n'+msg,parse_mode = None)
+          # await event.respond('success subscribe:\n'+msg,parse_mode = None)
+          await event.respond('success subscribe: {}'.format(channel if channel else f't.me/c/{_chat_id}'), parse_mode = None)
 
       cache.delete('status_{}'.format(chat_id))
       raise events.StopPropagation
