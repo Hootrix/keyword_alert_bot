@@ -249,7 +249,7 @@ def parse_full_command(command, keywords, channels):
       res.append((keyword,channel))
   return res
 
-async def join_channel_insert_subscribe(user_id,keyword_channel_list):
+async def join_channel_insert_subscribe(event, user_id,keyword_channel_list):
   """
   加入频道 且 写入订阅数据表
 
@@ -282,6 +282,7 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
         res.append((k,username,chat_id))
     except Exception as _e: # 不存在的频道
       logger.error(f'{c} JoinChannelRequest ERROR:{_e}')
+      await event.respond(f'{c} JoinChannelRequest ERROR:{_e}',parse_mode = None) # 提示错误消息
       
       # 查询本地记录是否存在
       channel_name_or_chat_id = regex.sub(r'^(?:http[s]?://)?t.me/(?:c/)?','',c) # 清洗多余信息
@@ -294,9 +295,11 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
           else:
             res.append((k,channel_name_or_chat_id,''))
         else:
-          return '无法使用该频道：{}\n\nChannel error, unable to use: {}'.format(c,_e)
+          # return '无法使用该频道：{}\n\nChannel error, unable to use: {}'.format(c,_e)
+          await event.respond('无法使用该频道：{}\n\nChannel error, unable to use: {}'.format(c,_e),parse_mode = None)
       else:
-        return '无法使用该频道：{}\n\nChannel error, unable to use: {}'.format(c,_e)
+        # return '无法使用该频道：{}\n\nChannel error, unable to use: {}'.format(c,_e)
+        await event.respond('无法使用该频道：{}\n\nChannel error, unable to use: {}'.format(c,_e),parse_mode = None)
     
   # 写入数据表
   result = []
@@ -403,7 +406,7 @@ async def subscribe(event):
     cache.set('status_{}'.format(chat_id),{'current_status':'/subscribe keywords','record_value':text},expire=5*60)#设置5m后过期
   elif len(splitd)  == 3:
     command, keywords, channels = splitd
-    result = await join_channel_insert_subscribe(user_id,parse_full_command(command, keywords, channels))
+    result = await join_channel_insert_subscribe(event, user_id,parse_full_command(command, keywords, channels))
     if isinstance(result,str): 
         logger.error('join_channel_insert_subscribe 错误：'+result)
         await event.respond(result,parse_mode = None) # 提示错误消息
@@ -415,7 +418,7 @@ async def subscribe(event):
         msg += 'keyword:{}  channel:{}\n'.format(key,(channel if channel else f't.me/c/{_chat_id}'))
       if msg:
         # await event.respond('success subscribe:\n'+msg,parse_mode = None)
-        await event.respond('success subscribe: {}'.format(channel if channel else f't.me/c/{_chat_id}'), parse_mode = None)
+        await event.respond('the rest subscribes succeed', parse_mode = None)
   raise events.StopPropagation
 
 
@@ -669,7 +672,7 @@ async def common(event):
       splitd = [i for i in regex.split('\s+',full_command) if i]# 删除空元素
       command, keywords, channels = splitd
       user_id = utils.db.user.get_or_none(chat_id=chat_id)
-      result = await join_channel_insert_subscribe(user_id,parse_full_command(command, keywords, channels))
+      result = await join_channel_insert_subscribe(event, user_id,parse_full_command(command, keywords, channels))
       if isinstance(result,str): 
         await event.respond(result,parse_mode = None) # 提示错误消息
       else:
@@ -680,7 +683,7 @@ async def common(event):
           msg += 'keyword:{}  channel:{}\n'.format(key,(channel if channel else f't.me/c/{_chat_id}'))
         if msg:
           # await event.respond('success subscribe:\n'+msg,parse_mode = None)
-          await event.respond('success subscribe: {}'.format(channel if channel else f't.me/c/{_chat_id}'), parse_mode = None)
+          await event.respond('the rest subscribes succeed', parse_mode = None)
 
       cache.delete('status_{}'.format(chat_id))
       raise events.StopPropagation
