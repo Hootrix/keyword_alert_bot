@@ -152,7 +152,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               if keywords in text:
                 # # {chat_title} \n\n
                 # message_str = f'[#FOUND]({channel_msg_url}) **{keywords}** {channel_title} @{sender_username}'
-                message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}** @{sender_username}'
+                message_str = f'[#FOUND]({channel_msg_url}) **{keywords}** @{sender_username}'
                 logger.info(f'TEXT: receiver chat_id:{receiver}, message_str:{message_str}')
                 if isinstance(event,events.NewMessage.Event):# 新建事件
                   cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
