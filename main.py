@@ -13,6 +13,7 @@ from logger import logger
 from config import config,_current_path as current_path
 from telethon import utils as telethon_utils
 from telethon.tl.types import PeerChannel
+from telethon.extensions import markdown,html
 
 
 PRODUCTION = False # 是否为生产环境（无代理配置）
@@ -59,6 +60,9 @@ async def on_greeting(event):
     '''Greets someone'''
     # telethon.events.newmessage.NewMessage.Event
     # telethon.events.messageedited.MessageEdited.Event
+    if not event.chat:
+      logger.error(f'event.chat empty. event.chat: { event.chat }')
+      raise events.StopPropagation
 
     if event.chat.username == account['bot_name']: # 不监听当前机器人消息
       logger.debug(f'不监听当前机器人消息, event.chat.username: { event.chat.username }')
@@ -106,6 +110,11 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
         for receiver,keywords,l_id,l_chat_id in find:
           try:
 
+            # 消息发送去重KEY（diskcache支持原子操作）
+            # 唯一性：user_chat_id，订阅列表id。
+            # 若重复订阅允许重复推送
+            CACHE_KEY_UNIQUE_SEND = f'{receiver}_{l_id}'
+
             # 优先返回可预览url
             channel_url = f'https://t.me/{event.chat.username}/' if event.chat.username else get_channel_url(event.chat.username,event.chat_id)
             channel_msg_url= f'{channel_url}{message.id}'
@@ -136,30 +145,32 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               regex_match_str = list(set(regex_match_str))# 处理重复元素
               if regex_match_str:# 默认 findall()结果
                 # # {chat_title} \n\n
-                # message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}** {channel_title} @{sender_username}'
                 message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}** @{sender_username}'
-                logger.info(f'REGEX: receiver chat_id:{receiver}, message_str:{message_str}')
-                if isinstance(event,events.NewMessage.Event):# 新建事件
-                  cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
-                await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')                
-
-                #匹配多项keyword只返回一次
-                raise events.StopPropagation  
+                if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5):
+                  logger.info(f'REGEX: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
+                  if isinstance(event,events.NewMessage.Event):# 新建事件
+                    cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
+                  await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
+                else:
+                  # 已发送该消息
+                  logger.error(f'REGEX send repeat. {receiver}_{l_id}:{channel_url}')
+                  continue
 
               else:
                 logger.debug(f'regex_match empty. regex:{keywords} ,message: t.me/{event.chat.username}/{event.message.id}')
             else:#普通模式
               if keywords in text:
                 # # {chat_title} \n\n
-                # message_str = f'[#FOUND]({channel_msg_url}) **{keywords}** {channel_title} @{sender_username}'
                 message_str = f'[#FOUND]({channel_msg_url}) **{keywords}** @{sender_username}'
-                logger.info(f'TEXT: receiver chat_id:{receiver}, message_str:{message_str}')
-                if isinstance(event,events.NewMessage.Event):# 新建事件
-                  cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
-                await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
-
-                #匹配多项keyword只返回一次
-                raise events.StopPropagation  
+                if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5):
+                  logger.info(f'TEXT: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
+                  if isinstance(event,events.NewMessage.Event):# 新建事件
+                    cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
+                  await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
+                else:
+                  # 已发送该消息
+                  logger.error(f'TEXT send repeat. {receiver}_{l_id}:{channel_url}')
+                  continue
 
           except errors.rpcerrorlist.UserIsBlockedError  as _e:
             # User is blocked (caused by SendMessageRequest)  用户已手动停止bot
@@ -639,7 +650,11 @@ async def _list(event):
 
         channel_url = f'<a href="{channel_url}">{"https://t.me/"+channel_name if channel_name else channel_url}</a>'
         msg += f'id:{sub_id}\n{_type}: {keywords}\n{channel_title}{channel_username}channel url: {channel_url}\n---\n'
-      await event.respond(msg,parse_mode = 'HTML') # 不用任何模式解析 直接输出显示
+      
+      text, entities = html.parse(msg)# 解析超大文本 分批次发送 避免输出报错
+      for text, entities in telethon_utils.split_text(text, entities):
+        # await client.send_message(chat, text, formatting_entities=entities)
+        await event.respond(text,formatting_entities=entities) 
     else:
       await event.respond('not found list')
   else:
@@ -667,6 +682,9 @@ async def common(event):
     elif find['current_status'] == '/subscribe channels':# 当前输入频道
       full_command = find['record_value'] + ' ' + text
       splitd = [i for i in regex.split('\s+',full_command) if i]# 删除空元素
+      if len(splitd)  != 3:
+        await event.respond('关键字请不要包含空格 可使用正则表达式解决\n\nThe keyword must not contain Spaces.')
+        raise events.StopPropagation
       command, keywords, channels = splitd
       user_id = utils.db.user.get_or_none(chat_id=chat_id)
       result = await join_channel_insert_subscribe(user_id,parse_full_command(command, keywords, channels))
@@ -693,6 +711,9 @@ async def common(event):
     elif find['current_status'] == '/unsubscribe channels':# 当前输入频道
       full_command = find['record_value'] + ' ' + text
       splitd = [i for i in regex.split('\s+',full_command) if i]# 删除空元素
+      if len(splitd)  != 3:
+        await event.respond('关键字请不要包含空格 可使用正则表达式解决\n\nThe keyword must not contain Spaces.')
+        raise events.StopPropagation
       command, keywords, channels = splitd
       user_id = utils.db.user.get_or_none(chat_id=chat_id)
       result = update_subscribe(user_id,parse_full_command(command, keywords, channels))
@@ -721,5 +742,8 @@ async def common(event):
   raise events.StopPropagation
 
 if __name__ == "__main__":
+
+    cache.expire()
+
     # 开启client loop。防止进程退出
     client.run_until_disconnected()
