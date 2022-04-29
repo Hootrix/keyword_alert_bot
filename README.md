@@ -56,7 +56,7 @@ bot_token
 bot_name
 ```
 
-依次执行命令
+终端命令行
 ```
 cd /etc/
 wget https://github.com/Hootrix/keyword_alert_bot/archive/refs/heads/master.zip
@@ -65,7 +65,10 @@ cd keyword_alert_bot-master/
 
 nano config.yml.default
 mv config.yml.default config.yml
+```
 
+### 在Debian11环境下 (Hax / Woiden)
+```
 apt update
 apt install -y pip screen
 pip3 install telethon peewee PySocks diskcache PyYAML
@@ -74,6 +77,20 @@ crontab -e
 @reboot ( sleep 90 ; python3 /etc/keyword_alert_bot-master/main.py )
 
 screen -S tgbot
+python3 /etc/keyword_alert_bot-master/main.py
+```
+
+### 在Debian10环境下 (Hosteons)
+```
+sudo apt update && sudo apt upgrade
+apt install -y pipenv
+pipenv install
+
+crontab -e
+@reboot ( sleep 90 ; python3 /etc/keyword_alert_bot-master/main.py )
+
+screen -S tgbot
+pipenv shell
 python3 /etc/keyword_alert_bot-master/main.py
 ```
 
