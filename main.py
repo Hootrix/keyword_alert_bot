@@ -130,7 +130,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               re_update = utils.db.user_subscribe_list.update(chat_id = str(event.chat_id) ).where(utils.User_subscribe_list.id == l_id)
               re_update.execute()
             
-            chat_title = f'@{event.chat.username}' if event.chat.username is not None else ""
+            chat_title = f'{event.chat.title}' if event.chat.title is not None else ""
             channel_title = f" CHANNEL: {chat_title}"
 
             if is_regex_str(keywords):# 输入的为正则字符串
@@ -145,7 +145,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               regex_match_str = list(set(regex_match_str))# 处理重复元素
               if regex_match_str:# 默认 findall()结果
                 # # {chat_title} \n\n
-                message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}** @{sender_username}'
+                message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}** in {channel_title} by @{sender_username}'
                 if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5):
                   logger.info(f'REGEX: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
                   if isinstance(event,events.NewMessage.Event):# 新建事件
@@ -161,7 +161,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
             else:#普通模式
               if keywords in text:
                 # # {chat_title} \n\n
-                message_str = f'[#FOUND]({channel_msg_url}) **{keywords}** @{sender_username}'
+                message_str = f'[#FOUND]({channel_msg_url}) **{keywords}** in {channel_title} by @{sender_username}'
                 if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5):
                   logger.info(f'TEXT: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
                   if isinstance(event,events.NewMessage.Event):# 新建事件
