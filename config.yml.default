@@ -22,3 +22,7 @@ proxy:
   type: SOCKS5 # e.g. SOCKS4, SOCKS5, HTTP
   address: null  # e.g. 127.0.0.1
   port: null # e.g. 1088
+
+
+# 自动退群/频道（针对无有效订阅记录的群/频道）
+auto_leave_channel: false

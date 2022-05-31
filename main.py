@@ -16,17 +16,12 @@ from telethon.tl.types import PeerChannel
 from telethon.extensions import markdown,html
 
 
-PRODUCTION = False # 是否为生产环境（无代理配置）
-
 # 配置访问tg服务器的代理
 proxy = None
 if all(config['proxy'].values()): # 同时不为None
   logger.info(f'proxy info:{config["proxy"]}')
   proxy = (getattr(socks,config['proxy']['type']), config['proxy']['address'], config['proxy']['port'])
 # proxy = (socks.SOCKS5, '127.0.0.1', 1088)
-else:
-  PRODUCTION = True # 生产环境会退出无用的频道/群组
-
 
 account = config['account']
 cache = diskcache.Cache(current_path+'/.tmp')# 设置缓存文件目录  当前tmp文件夹。用于缓存分步执行命令的操作，避免bot无法找到当前输入操作的进度
@@ -184,10 +179,10 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
       else:
         logger.debug(f'sql find empty. event.chat.username:{event.chat.username}, find:{find}, sql:{sql}')
 
-        # 暂停频道退出操作
-        # if PRODUCTION:
-        #   logger.info(f'Leave  Channel/group: {event.chat.username}')
-        #   await leave_channel(event.chat.username)
+        if config['auto_leave_channel']:
+          if event.chat.username:# 公开频道/组
+            logger.info(f'Leave  Channel/group: {event.chat.username}')
+            await leave_channel(event.chat.username)
 
 
 # bot相关操作
