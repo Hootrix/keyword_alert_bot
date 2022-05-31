@@ -179,7 +179,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
       else:
         logger.debug(f'sql find empty. event.chat.username:{event.chat.username}, find:{find}, sql:{sql}')
 
-        if config['auto_leave_channel']:
+        if 'auto_leave_channel' in config and config['auto_leave_channel']:
           if event.chat.username:# 公开频道/组
             logger.info(f'Leave  Channel/group: {event.chat.username}')
             await leave_channel(event.chat.username)
