@@ -24,56 +24,52 @@
 
 http://t.me/keyword_alert_bot
 
+![image](https://user-images.githubusercontent.com/10736915/171514829-4186d486-e1f4-4303-b3a9-1cfc1b571668.png)
+
+
 # USAGE
 
-```
-# 正则
-# 使用js正则语法规则，用/包裹正则语句，目前可以使用的匹配模式：i,g
+## 普通关键字匹配
 
+```
+/subscribe   免费     https://t.me/tianfutong
+/subscribe   优惠券   https://t.me/tianfutong
+
+```
+
+## 正则表达式匹配
+
+使用js正则语法规则，用/包裹正则语句，目前可以使用的匹配模式：i,g
+
+```
 # 订阅手机型号关键字：iphone x，排除XR，XS等型号，且忽略大小写
 /subscribe   /(iphone\s*x)(?:[^sr]|$)/ig  com9ji,xiaobaiup
-
 /subscribe   /(iphone\s*x)(?:[^sr]|$)/ig  https://t.me/com9ji,https://t.me/xiaobaiup
 
 # xx券
 /subscribe  /([\S]{2}券)/g  https://t.me/tianfutong
 
----
-
-# 普通关键字
-
-# 订阅关键字：免费
-/subscribe   免费    https://t.me/tianfutong
-
 ```
+
 
 
 ## BUILD
 
-1. config.yml.default --> config.yml
+### 1. config.yml.default --> config.yml
 
- 修改config.yml配置
+#### Create Telelgram Account & API
 
-- Create Telelgram Account & API
+[开通api](https://my.telegram.org/apps) 建议请使用新注册的Telegram账户
 
-[开通api](https://my.telegram.org/apps)
+#### Create BOT 
 
-  建议请使用新注册的Telegram账户
+https://t.me/BotFather  
 
+### 2. RUN
 
-- Create BOT 
+运行环境 python3.7+
 
-https://t.me/BotFather
-
-
-
-首次运行需要用tg账户接收数字验证码，且需要输入密码
-
-
-
-2. 运行
-
-需要python3.7环境
+首次运行需要用tg账户接收数字验证码，且输入密码（telegram API触发）
 
 ```
 $ pipenv install
@@ -83,7 +79,7 @@ $ pipenv shell
 $ python3 ./main.py
 ```
 
-3. crontab 
+### 3. crontab （optional）
 
  - update telethon
 
@@ -100,7 +96,10 @@ e.g.
  
  请尝试更新telethon解决问题🤔，我也很无助。
 
-## bot help
+ - 订阅群组消息，机器人没任何反应
+ https://github.com/Hootrix/keyword_alert_bot/issues/20
+
+## BOT HELP
 
 ```
 
