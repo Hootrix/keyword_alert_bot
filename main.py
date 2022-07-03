@@ -113,7 +113,11 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
             # 消息发送去重KEY（diskcache支持原子操作）
             # 唯一性：user_chat_id，订阅列表id。
             # 若重复订阅允许重复推送
-            CACHE_KEY_UNIQUE_SEND = f'{receiver}_{l_id}'
+            # 配合后面5秒cache, 可以使得短时间内重复刷屏的消息只推送一次
+            CACHE_KEY_UNIQUE_SEND = f'{receiver}_{l_id}' 
+
+            # 配合后面5秒cache, 实现若一条消息匹配多个判断条件, 只发送一次
+            CACHE_MSG_UNIQUE_SEND = f'{receiver}_{message.id}'
 
             # 优先返回可预览url
             channel_url = f'https://t.me/{event.chat.username}/' if event.chat.username else get_channel_url(event.chat.username,event.chat_id)
@@ -146,7 +150,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               if regex_match_str:# 默认 findall()结果
                 # # {chat_title} \n\n
                 message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}** in {channel_title} by @{sender_username}'
-                if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5):
+                if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5) and cache.add(CACHE_MSG_UNIQUE_SEND,1,expire=5):
                   logger.info(f'REGEX: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
                   if isinstance(event,events.NewMessage.Event):# 新建事件
                     cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
@@ -162,7 +166,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               if keywords in text:
                 # # {chat_title} \n\n
                 message_str = f'[#FOUND]({channel_msg_url}) **{keywords}** in {channel_title} by @{sender_username}'
-                if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5):
+                if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5) and cache.add(CACHE_MSG_UNIQUE_SEND,1,expire=5):
                   logger.info(f'TEXT: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
                   if isinstance(event,events.NewMessage.Event):# 新建事件
                     cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
