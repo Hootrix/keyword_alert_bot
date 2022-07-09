@@ -74,7 +74,12 @@ async def on_greeting(event):
         text += ' {}'.format(message.file.name)# 追加上文件名
 
       # 打印消息
-      logger.debug(f'event.chat.username: {event.chat.username},event.chat.id:{event.chat.id},event.chat.title:{event.chat.title},event.message.id:{event.message.id},text:{text}')
+      _title = ''
+      if not hasattr(event.chat,'title'):
+        logger.warn('event.chat not found title:',event.chat)
+      else:
+        _title = f'event.chat.title:{event.chat.title},'
+      logger.debug(f'event.chat.username: {event.chat.username},event.chat.id:{event.chat.id},{_title} event.message.id:{event.message.id},text:{text}')
 
       # 1.方法(失败)：转发消息 
       # chat = 'keyword_alert_bot' #能转发 但是不能真对特定用户。只能转发给当前允许账户的bot
@@ -470,7 +475,10 @@ async def unsubscribe_id(event):
   text = regex.sub('\s*,\s*',',',text) # 确保英文逗号间隔中间都没有空格  如 "https://t.me/xiaobaiup, https://t.me/com9ji"
   splitd = [i for i in regex.split('\s+',text) if i]# 删除空元素
   if len(splitd) > 1:
-    ids = [int(i) for i in splitd[1].split(',')]
+    ids = [int(i) for i in splitd[1].split(',') if i.isnumeric()]
+    if not ids:
+      await event.respond('Please input your unsubscribe_id. \ne.g. `/unsubscribe_id 123,321`')
+      raise events.StopPropagation
     result = []
     for i in ids:
       re_update = utils.db.user_subscribe_list.update(status = 1 ).where(utils.User_subscribe_list.id == i,utils.User_subscribe_list.user_id == user_id)#更新状态
