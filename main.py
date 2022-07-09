@@ -64,6 +64,11 @@ async def on_greeting(event):
       logger.debug(f'不监听当前机器人消息, event.chat.username: { event.chat.username }')
       raise events.StopPropagation
 
+    sender_username = event.message.sender.username if event.message.sender.username is not None else '' 
+    if sender_username.lower().endswith('bot'): # 不监听所有机器人发的消息
+      logger.debug(f'不监听所有机器人消息, event.chat.username: { event.chat.username }')
+      raise events.StopPropagation      
+      
     # if not event.is_group:# channel 类型
     if True:# 所有消息类型，支持群组
       message = event.message
