@@ -101,11 +101,16 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
 
         for receiver,keywords,l_id,l_chat_id in find:
           try:
-
-            # 消息发送去重KEY（diskcache支持原子操作）
-            # 唯一性：user_chat_id，订阅列表id。
-            # 若重复订阅允许重复推送
-            CACHE_KEY_UNIQUE_SEND = f'{receiver}_{l_id}'
+            # 消息发送去重规则
+            MSG_UNIQUE_RULE_MAP = {
+              'SUBSCRIBE_ID': f'{receiver}_{l_id}',
+              'MESSAGE_ID': f'{receiver}_{message.id}',
+            }
+            if 'msg_unique_rule' not in config:
+              config['msg_unique_rule'] = 'SUBSCRIBE_ID'
+            assert config['msg_unique_rule'] in MSG_UNIQUE_RULE_MAP,'config "msg_unique_rule" error!!!'
+            CACHE_KEY_UNIQUE_SEND = MSG_UNIQUE_RULE_MAP[config['msg_unique_rule']]
+            logger.debug(f'msg_unique_rule:{config["msg_unique_rule"]} --> {CACHE_KEY_UNIQUE_SEND}')
 
             # 优先返回可预览url
             channel_url = f'https://t.me/{event.chat.username}/' if event.chat.username else get_channel_url(event.chat.username,event.chat_id)
@@ -143,7 +148,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                   await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
                 else:
                   # 已发送该消息
-                  logger.error(f'REGEX send repeat. {receiver}_{l_id}:{channel_url}')
+                  logger.debug(f'REGEX send repeat. rule_name:{config["msg_unique_rule"]}  {CACHE_KEY_UNIQUE_SEND}:{channel_url}')
                   continue
 
               else:
@@ -160,7 +165,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                   await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
                 else:
                   # 已发送该消息
-                  logger.error(f'TEXT send repeat. {receiver}_{l_id}:{channel_url}')
+                  logger.debug(f'TEXT send repeat. rule_name:{config["msg_unique_rule"]}  {CACHE_KEY_UNIQUE_SEND}:{channel_url}')
                   continue
           except errors.rpcerrorlist.UserIsBlockedError  as _e:
             # User is blocked (caused by SendMessageRequest)  用户已手动停止bot
@@ -174,6 +179,8 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
             user_id = utils.db.user.get_or_none(chat_id=receiver)
             if user_id:
               isdel2 = utils.db.user_subscribe_list.delete().where(utils.User_subscribe_list.user_id == user_id.id).execute()
+          except AssertionError as _e:
+            raise _e
           except Exception as _e:
             logger.error(f'{_e}')
       else:
