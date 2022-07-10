@@ -385,6 +385,10 @@ async def start(event):
   """Send a message when the command /start is issued."""
   # insert chat_id
   chat_id = event.message.chat.id
+  if (chat_id != 391932510):
+    await event.respond('Opps! I\'m a private bot. 对不起，这是一个私人专用的Bot')
+    raise events.StopPropagation
+
   find = utils.db.user.get_or_none(chat_id=chat_id)
   if not find:
     insert_res = utils.db.user.create(**{
