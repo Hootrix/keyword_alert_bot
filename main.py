@@ -436,7 +436,11 @@ async def subscribe(event):
           _chat_id, peer_type = telethon_utils.resolve_id(int(_chat_id))
         msg += 'keyword:{}  channel:{}\n'.format(key,(channel if channel else f't.me/c/{_chat_id}'))
       if msg:
-        await event.respond('success subscribe:\n'+msg,parse_mode = None)
+        msg = 'success subscribe:\n'+msg 
+        text, entities = html.parse(msg)# 解析超大文本 分批次发送 避免输出报错
+        for text, entities in telethon_utils.split_text(text, entities):
+          # await client.send_message(chat, text, formatting_entities=entities)
+          await event.respond(text,formatting_entities=entities) 
   raise events.StopPropagation
 
 
