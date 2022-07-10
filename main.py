@@ -149,7 +149,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               regex_match_str = list(set(regex_match_str))# 处理重复元素
               if regex_match_str:# 默认 findall()结果
                 # # {chat_title} \n\n
-                channel_title = f"\n\nCHANNEL: {chat_title}" if not event.chat.username else ""
+                channel_title = f"\n\nCHANNEL: {chat_title}" if event.chat.username else ""
                 message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}**{channel_title}'
                 if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5):
                   logger.info(f'REGEX: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
@@ -166,7 +166,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
             else:#普通模式
               if keywords in text:
                 # # {chat_title} \n\n
-                channel_title = f"\n\nCHANNEL: {chat_title}" if not event.chat.username else ""
+                channel_title = f"\n\nCHANNEL: {chat_title}" if event.chat.username else ""
                 message_str = f'[#FOUND]({channel_msg_url}) **{keywords}**{channel_title}'
                 if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5):
                   logger.info(f'TEXT: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
