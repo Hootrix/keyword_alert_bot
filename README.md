@@ -52,7 +52,8 @@ http://t.me/keyword_alert_bot
 ```
 
 
-## 给小白看的安装过程
+## BUILD
+给小白看的安装过程
 
 https://my.telegram.org/apps 获得
 ```
