@@ -76,7 +76,7 @@ async def on_greeting(event):
       # 打印消息
       _title = ''
       if not hasattr(event.chat,'title'):
-        logger.warn('event.chat not found title:',event.chat)
+        logger.warn(f'event.chat not found title:{event.chat}')
       else:
         _title = f'event.chat.title:{event.chat.title},'
       logger.debug(f'event.chat.username: {event.chat.username},event.chat.id:{event.chat.id},{_title} event.message.id:{event.message.id},text:{text}')
