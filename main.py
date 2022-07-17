@@ -242,25 +242,25 @@ def get_channel_url(event_chat_username,event_chat__id):
 
 def parse_full_command(command, keywords, channels):
   """
-处理多字段的命令参数  拼接合并返回
-  Args:
-      command ([type]): [命令 如 subscribe  unsubscribe]
-      keywords ([type]): [description]
-      channels ([type]): [description]
+  处理多字段的命令参数  拼接合并返回
+    Args:
+        command ([type]): [命令 如 subscribe  unsubscribe]
+        keywords ([type]): [description]
+        channels ([type]): [description]
 
-  Returns:
-      [type]: [description]
+    Returns:
+        [type]: [description]
   """
   keywords_list = keywords.split(',')
   channels_list = channels.split(',')
-  res = []
+  res = {}
   for keyword in keywords_list:
     keyword = keyword.strip()
     for channel in channels_list:
       channel = channel.strip()
       channel = parse_url(channel)['uri'].replace('/','') # 支持传入url  类似 https://t.me/xiaobaiup
-      res.append((keyword,channel))
-  return res
+      res[f'{channel}{keyword}'] = (keyword,channel)# 去重
+  return list(res.values())
 
 async def join_channel_insert_subscribe(user_id,keyword_channel_list):
   """
