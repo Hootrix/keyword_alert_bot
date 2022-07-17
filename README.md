@@ -99,6 +99,12 @@ e.g.
  - 订阅群组消息，机器人没任何反应
  https://github.com/Hootrix/keyword_alert_bot/issues/20
 
+ - ModuleNotFoundError: No module named 'asyncstdlib', No module named '...'
+
+```
+$ pipenv  install
+```
+
 ## BOT HELP
 
 ```
