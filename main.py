@@ -14,6 +14,7 @@ from config import config,_current_path as current_path
 from telethon import utils as telethon_utils
 from telethon.tl.types import PeerChannel
 from telethon.extensions import markdown,html
+from asyncstdlib.functools import lru_cache as async_lru_cache
 
 
 # 配置访问tg服务器的代理
@@ -48,6 +49,31 @@ def js_to_py_re(rx):
 
 def is_regex_str(string):
   return regex.search(r'^/.*/[a-zA-Z]*?$',string)
+
+@async_lru_cache(maxsize=256)
+async def client_get_entity(entity,_):
+  '''
+  读取频道信息
+  client.get_entity 内存缓存替代方法
+  
+  尽量避免get_entity出现频繁请求报错 
+  A wait of 19964 seconds is required (caused by ResolveUsernameRequest)
+
+  Args:
+      entity (_type_): 同get_entity()参数
+      _ (_type_): lru缓存标记值
+  
+  Example:
+    缓存 1天
+    await client_get_entity(real_id, time.time() // 86400 )
+
+    缓存 10秒
+    await client_get_entity(real_id, time.time() // 10 )
+
+  Returns:
+      Entity: 
+  '''
+  return await client.get_entity(entity)
 
 # client相关操作 目的：读取消息
 @client.on(events.MessageEdited)
@@ -279,11 +305,11 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
     try:
       if c.lstrip('-').isdigit():# 整数
         real_id, peer_type = telethon_utils.resolve_id(int(c))
-        channel_entity = await client.get_entity(real_id)
+        channel_entity = await client_get_entity(real_id, time.time() // 86400 )
         chat_id = telethon_utils.get_peer_id(PeerChannel(real_id)) # 转换为marked_id 
         # channel_entity.title
       else:# 传入普通名称
-        channel_entity = await client.get_entity(c) # get_entity频繁请求会有报错 A wait of 19964 seconds is required (caused by ResolveUsernameRequest)
+        channel_entity = await client_get_entity(c, time.time() // 86400) 
         chat_id = telethon_utils.get_peer_id(PeerChannel(channel_entity.id)) # 转换为marked_id 
       
       if channel_entity.username: username = channel_entity.username
