@@ -11,6 +11,7 @@ pysocks = "*"
 peewee = "*"
 pyyaml = "*"
 diskcache = "*"
+asyncstdlib = "*"
 
 [requires]
 python_version = "3.7"
