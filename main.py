@@ -284,7 +284,12 @@ def parse_full_command(command, keywords, channels):
     keyword = keyword.strip()
     for channel in channels_list:
       channel = channel.strip()
-      channel = parse_url(channel)['uri'].replace('/','') # 支持传入url  类似 https://t.me/xiaobaiup
+      uri = parse_url(channel)['uri']
+      find_channel_id = regex.search('^(?:t\.me)?/c/(\d+)',uri)
+      if find_channel_id:
+        channel = find_channel_id.group(1)
+      else:
+        channel = uri.replace('/','') # 支持传入url  类似 https://t.me/xiaobaiup
       res[f'{channel}{keyword}'] = (keyword,channel)# 去重
   return list(res.values())
 
@@ -451,7 +456,10 @@ async def subscribe(event):
       for key,channel,_chat_id in result:
         if _chat_id:
           _chat_id, peer_type = telethon_utils.resolve_id(int(_chat_id))
-        msg += 'keyword:{}  channel:{}\n'.format(key,(channel if channel else f't.me/c/{_chat_id}'))
+
+        if not channel:
+          channel = f'<a href="t.me/c/{_chat_id}/-1">{_chat_id}</a>'
+        msg += f'keyword:{key}  channel:{channel}\n'
       if msg:
         msg = 'success subscribe:\n'+msg 
         text, entities = html.parse(msg)# 解析超大文本 分批次发送 避免输出报错
@@ -729,9 +737,16 @@ async def common(event):
         for key,channel,_chat_id in result:
           if _chat_id:
             _chat_id, peer_type = telethon_utils.resolve_id(int(_chat_id))
-          msg += 'keyword:{}  channel:{}\n'.format(key,(channel if channel else f't.me/c/{_chat_id}'))
+          
+          if not channel:
+            channel = f'<a href="t.me/c/{_chat_id}/-1">{_chat_id}</a>'
+          msg += f'keyword:{key}  channel:{channel}\n'
         if msg:
-          await event.respond('success subscribe:\n'+msg,parse_mode = None)
+          # await event.respond('success subscribe:\n'+msg,parse_mode = None)
+          msg = 'success subscribe:\n'+msg 
+          text, entities = html.parse(msg)# 解析超大文本 分批次发送 避免输出报错
+          for text, entities in telethon_utils.split_text(text, entities):
+            await event.respond(text,formatting_entities=entities) 
 
       cache.delete('status_{}'.format(chat_id))
       raise events.StopPropagation
