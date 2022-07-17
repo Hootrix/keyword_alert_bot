@@ -119,12 +119,12 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
 
             # 优先返回可预览url
             channel_url = f'https://t.me/{event.chat.username}/' if event.chat.username else get_channel_url(event.chat.username,event.chat_id)
-            channel_url= f'{channel_url}{message.id}'
+            channel_msg_url= f'{channel_url}{message.id}'
             send_cache_key = f'_LAST_{l_id}_{message.id}_send'
             if isinstance(event,events.MessageEdited.Event):# 编辑事件
               # 24小时内新建2秒后的编辑不提醒
               if cache.get(send_cache_key) and (event.message.edit_date - event.message.date) > datetime.timedelta(seconds=2): 
-                logger.error(f'{channel_url} repeat send. deny!')
+                logger.error(f'{channel_msg_url} repeat send. deny!')
                 continue
             if not l_chat_id:# 未记录频道id
               logger.info(f'update user_subscribe_list.chat_id:{event.chat_id}  where id = {l_id} ')
@@ -145,7 +145,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               if regex_match_str:# 默认 findall()结果
                 # # {chat_title} \n\n
                 channel_title = f"\n\nCHANNEL: {chat_title}" if not event.chat.username else ""
-                message_str = f'[#FOUND]({channel_url}) **{regex_match_str}**{channel_title}'
+                message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}**{channel_title}'
                 if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5):
                   logger.info(f'REGEX: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
                   if isinstance(event,events.NewMessage.Event):# 新建事件
@@ -153,7 +153,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                   await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
                 else:
                   # 已发送该消息
-                  logger.debug(f'REGEX send repeat. rule_name:{config["msg_unique_rule"]}  {CACHE_KEY_UNIQUE_SEND}:{channel_url}')
+                  logger.debug(f'REGEX send repeat. rule_name:{config["msg_unique_rule"]}  {CACHE_KEY_UNIQUE_SEND}:{channel_msg_url}')
                   continue
 
               else:
@@ -162,7 +162,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               if keywords in text:
                 # # {chat_title} \n\n
                 channel_title = f"\n\nCHANNEL: {chat_title}" if not event.chat.username else ""
-                message_str = f'[#FOUND]({channel_url}) **{keywords}**{channel_title}'
+                message_str = f'[#FOUND]({channel_msg_url}) **{keywords}**{channel_title}'
                 if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5):
                   logger.info(f'TEXT: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
                   if isinstance(event,events.NewMessage.Event):# 新建事件
@@ -170,7 +170,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                   await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
                 else:
                   # 已发送该消息
-                  logger.debug(f'TEXT send repeat. rule_name:{config["msg_unique_rule"]}  {CACHE_KEY_UNIQUE_SEND}:{channel_url}')
+                  logger.debug(f'TEXT send repeat. rule_name:{config["msg_unique_rule"]}  {CACHE_KEY_UNIQUE_SEND}:{channel_msg_url}')
                   continue
           except errors.rpcerrorlist.UserIsBlockedError  as _e:
             # User is blocked (caused by SendMessageRequest)  用户已手动停止bot
