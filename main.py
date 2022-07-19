@@ -146,6 +146,10 @@ async def on_greeting(event):
     if not event.chat:
       logger.error(f'event.chat empty. event.chat: { event.chat }')
       raise events.StopPropagation
+    
+    if not hasattr(event.chat,'username'):
+      logger.error(f'event.chat not found username:{event.chat}')
+      raise events.StopPropagation
 
     if event.chat.username == account['bot_name']: # 不监听当前机器人消息
       logger.debug(f'不监听当前机器人消息, event.chat.username: { event.chat.username }')
