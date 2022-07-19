@@ -7,6 +7,8 @@ import diskcache
 import time
 from urllib.parse import urlparse
 from telethon.tl.functions.channels import JoinChannelRequest
+from telethon.tl.functions.messages import ImportChatInviteRequest
+from telethon.tl.functions.messages import CheckChatInviteRequest
 from telethon.tl.functions.channels import DeleteHistoryRequest
 from telethon.tl.functions.channels import LeaveChannelRequest, DeleteChannelRequest
 from logger import logger
@@ -15,7 +17,7 @@ from telethon import utils as telethon_utils
 from telethon.tl.types import PeerChannel
 from telethon.extensions import markdown,html
 from asyncstdlib.functools import lru_cache as async_lru_cache
-
+import asyncio
 
 # 配置访问tg服务器的代理
 proxy = None
@@ -74,6 +76,65 @@ async def client_get_entity(entity,_):
       Entity: 
   '''
   return await client.get_entity(entity)
+
+
+
+async def cache_set(*args):
+  '''
+  缓存写入 异步方式
+
+  wiki：https://github.com/grantjenks/python-diskcache/commit/dfad0aa27362354901d90457e465b8b246570c3e
+
+  Returns:
+      _type_: _description_
+  '''
+  loop = asyncio.get_running_loop()
+  future = loop.run_in_executor(None, cache.set, *args)
+  result = await future
+  return result
+
+async def cache_get(*args):
+  loop = asyncio.get_running_loop()
+  future = loop.run_in_executor(None, cache.get, *args)
+  result = await future
+  return result
+  
+async def resolve_invit_hash(invit_hash,expired_secends = 60 * 5):
+  '''
+  解析邀请链接  https://t.me/+G-w4Ovfzp9U4YTFl
+  默认缓存5min
+
+  Args:
+      invite_hash (str): e.g. G-w4Ovfzp9U4YTFl
+      expired_secends (int): None: not cache , 60:  1min
+
+  Returns:
+      Tuple | None: (marked_id,chat_title)
+  '''
+  if not invit_hash: return None
+  marked_id = ''
+  chat_title = ''
+
+  cache_key = f'01211resolve_invit_hash{invit_hash}'
+  find = await cache_get(cache_key)
+  if find: 
+    logger.info(f'resolve_invit_hash HIT CACHE: {invit_hash}')
+    return find
+    
+  logger.info(f'resolve_invit_hash MISS: {invit_hash}')
+  chatinvite = await client(CheckChatInviteRequest(invit_hash))
+  if chatinvite and hasattr(chatinvite,'chat'):# 已加入
+    # chatinvite.chat.id # 1695903641
+    # chatinvite.chat.title # '测试'
+
+    marked_id  = telethon_utils.get_peer_id(PeerChannel(chatinvite.chat.id)) # 转换为marked_id 
+    chat_title = chatinvite.chat.title
+    channel_entity = chatinvite.chat
+    rel = (marked_id,chat_title,channel_entity)
+    await cache_set(cache_key,rel,expired_secends)
+    # cache.set(cache_key,rel,expired_secends)
+    return rel
+  return None
 
 # client相关操作 目的：读取消息
 @client.on(events.MessageEdited)
@@ -234,6 +295,9 @@ def parse_url(url):
   Returns:
       [dict]: [按照个人认为的字段区域名称]  <scheme>://<host>/<uri>?<query>#<fragment>
   """
+  if regex.search('^t\.me/',url):
+    url = f'http://{url}'
+
   res = urlparse(url) # <scheme>://<netloc>/<path>;<params>?<query>#<fragment>
   result = {}
   result['scheme'],result['host'],result['uri'],result['_params'],result['query'],result['fragment'] = list(res)
@@ -285,11 +349,14 @@ def parse_full_command(command, keywords, channels):
     for channel in channels_list:
       channel = channel.strip()
       uri = parse_url(channel)['uri']
-      find_channel_id = regex.search('^(?:t\.me)?/c/(\d+)',uri)
-      if find_channel_id:
-        channel = find_channel_id.group(1)
-      else:
-        channel = uri.replace('/','') # 支持传入url  类似 https://t.me/xiaobaiup
+      channel = uri.strip('/')
+      channel = regex.sub('^joinchat/(.+)',r'+\1',channel)
+      find_channel = regex.search(r'^c/(\d+)|^(\+.+)',channel)
+      if find_channel:
+        for i in find_channel.groups():
+          if i:
+            channel = i
+            break
       res[f'{channel}{keyword}'] = (keyword,channel)# 去重
   return list(res.values())
 
@@ -308,22 +375,49 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
     username = ''
     chat_id = ''
     try:
+      is_chat_invite_link = False
       if c.lstrip('-').isdigit():# 整数
         real_id, peer_type = telethon_utils.resolve_id(int(c))
         channel_entity = await client_get_entity(real_id, time.time() // 86400 )
         chat_id = telethon_utils.get_peer_id(PeerChannel(real_id)) # 转换为marked_id 
         # channel_entity.title
       else:# 传入普通名称
-        channel_entity = await client_get_entity(c, time.time() // 86400) 
-        chat_id = telethon_utils.get_peer_id(PeerChannel(channel_entity.id)) # 转换为marked_id 
+        if regex.search('^\+',c):# 邀请链接
+          is_chat_invite_link = True
+          c = c.lstrip('+')
+          channel_entity = None
+          chat_id = ''
+          chatinvite =  await resolve_invit_hash(c)
+          if chatinvite:
+            chat_id,chat_title,channel_entity = chatinvite
+        else:
+          channel_entity = await client_get_entity(c, time.time() // 86400) 
+          chat_id = telethon_utils.get_peer_id(PeerChannel(channel_entity.id)) # 转换为marked_id 
       
-      if channel_entity.username: username = channel_entity.username
+      if channel_entity and channel_entity.username: username = channel_entity.username
       
       if channel_entity and not channel_entity.left: # 已加入该频道
+        logger.warning(f'user_id：{user_id}触发检查  已加入该私有频道:{chat_id}  invite_hash:{c}')
         res.append((k,username,chat_id))
       else:
-        await client(JoinChannelRequest(channel_entity))
-        res.append((k,username,chat_id))
+        if is_chat_invite_link:
+          # 通过邀请链接加入私有频道
+          logger.info(f'user_id：{user_id}通过邀请链接加入私有频道{c}')
+          await client(ImportChatInviteRequest(c))
+          chatinvite =  await resolve_invit_hash(c)
+          if chatinvite:
+            chat_id,chat_title,channel_entity = chatinvite
+            res.append((k,username,chat_id))
+        else:
+          await client(JoinChannelRequest(channel_entity))
+          res.append((k,username,chat_id))
+        
+    except errors.InviteHashExpiredError as _e:
+      logger.error(f'{c} InviteHashExpiredError ERROR:{_e}')
+      return f'无法使用该频道邀请链接：{c}\nLink has expired.'
+    except errors.UserAlreadyParticipantError as _e:# 重复加入私有频道
+      logger.warning(f'{c} UserAlreadyParticipantError ERROR:{_e}')
+      return f'无法使用该频道邀请链接：UserAlreadyParticipantError'
     except Exception as _e: # 不存在的频道
       logger.error(f'{c} JoinChannelRequest ERROR:{_e}')
       
