@@ -382,9 +382,10 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
       is_chat_invite_link = False
       if c.lstrip('-').isdigit():# 整数
         real_id, peer_type = telethon_utils.resolve_id(int(c))
-        channel_entity = await client_get_entity(real_id, time.time() // 86400 )
+        channel_entity = None
+        # 不请求channel_entity
+        # channel_entity = await client_get_entity(real_id, time.time() // 86400 )
         chat_id = telethon_utils.get_peer_id(PeerChannel(real_id)) # 转换为marked_id 
-        # channel_entity.title
       else:# 传入普通名称
         if regex.search('^\+',c):# 邀请链接
           is_chat_invite_link = True
@@ -413,7 +414,7 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
             chat_id,chat_title,channel_entity = chatinvite
             res.append((k,username,chat_id))
         else:
-          await client(JoinChannelRequest(channel_entity))
+          await client(JoinChannelRequest(channel_entity or chat_id))
           res.append((k,username,chat_id))
         
     except errors.InviteHashExpiredError as _e:
