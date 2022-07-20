@@ -144,7 +144,7 @@ async def on_greeting(event):
     # telethon.events.newmessage.NewMessage.Event
     # telethon.events.messageedited.MessageEdited.Event
     if not event.chat:
-      logger.error(f'event.chat empty. event.chat: { event.chat }')
+      logger.error(f'event.chat empty. event: { event }')
       raise events.StopPropagation
     
     if not hasattr(event.chat,'username'):
@@ -399,7 +399,7 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
           channel_entity = await client_get_entity(c, time.time() // 86400) 
           chat_id = telethon_utils.get_peer_id(PeerChannel(channel_entity.id)) # 转换为marked_id 
       
-      if channel_entity and channel_entity.username: username = channel_entity.username
+      if channel_entity and hasattr(channel_entity,'username'): username = channel_entity.username
       
       if channel_entity and not channel_entity.left: # 已加入该频道
         logger.warning(f'user_id：{user_id}触发检查  已加入该私有频道:{chat_id}  invite_hash:{c}')
