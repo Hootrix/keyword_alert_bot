@@ -32,3 +32,7 @@ auto_leave_channel: false
   # SUBSCRIBE_ID: 默认规则 按照订阅去重
   # MESSAGE_ID: 按消息id去重（若该消息同时命中多条订阅，只返回第一条订阅提醒）
 msg_unique_rule: SUBSCRIBE_ID # default SUBSCRIBE_ID
+
+# 是否拒绝来自其它机器人发在群里的消息
+# 比如，有些群里有自动回复机器人，回复的都是重复的消息；或者一些广告机器人加群之后开始刷屏
+block_bot_msg: true

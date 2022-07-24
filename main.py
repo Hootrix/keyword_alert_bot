@@ -155,6 +155,12 @@ async def on_greeting(event):
       logger.debug(f'不监听当前机器人消息, event.chat.username: { event.chat.username }')
       raise events.StopPropagation
 
+    # 是否拒绝来自其它机器人发在群里的消息
+    if 'block_bot_msg' in config and config['block_bot_msg']:
+      if hasattr(event.message.sender,'bot') and event.message.sender.bot :
+        logger.debug(f'不监听所有机器人消息, event.chat.username: { event.chat.username }')
+        raise events.StopPropagation
+
     # if not event.is_group:# channel 类型
     if True:# 所有消息类型，支持群组
       message = event.message
