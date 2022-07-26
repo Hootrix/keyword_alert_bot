@@ -32,3 +32,10 @@ auto_leave_channel: false
   # SUBSCRIBE_ID: 默认规则 按照订阅去重
   # MESSAGE_ID: 按消息id去重（若该消息同时命中多条订阅，只返回第一条订阅提醒）
 msg_unique_rule: SUBSCRIBE_ID # default SUBSCRIBE_ID
+
+# 非公共服务
+# 此bot只为指定的用户服务
+private_service: false
+authorized_users: 
+  - 123456789
+  - 987654321
