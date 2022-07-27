@@ -39,3 +39,7 @@ private_service: false
 authorized_users: 
   - 123456789
   - 987654321
+
+# 是否拒绝来自其它机器人发在群里的消息
+# 比如，有些群里有自动回复机器人，回复的都是重复的消息；或者一些广告机器人加群之后开始刷屏
+block_bot_msg: true
