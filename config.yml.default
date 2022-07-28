@@ -39,3 +39,7 @@ private_service: false
 authorized_users: 
   - 123456789
   - 987654321
+
+# 禁止监听机器人发送的消息(仅限群组)
+# 比如，有些群里有自动回复机器人，回复的都是重复的消息；或者一些广告机器人加群之后开始刷屏
+block_bot_msg: false # default allow
