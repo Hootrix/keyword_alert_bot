@@ -10,7 +10,7 @@ account:
 
   # 发送消息的bot token
   bot_token : '1000007:AAHNh8axxxxxxxxxxxxxxxxHA'
-  bot_name : 'keyxxxxxrt_bot'
+  bot_username : 'keyxxxxxrt_bot' # 同参数 bot_name
 
 # LOG
 logger:
