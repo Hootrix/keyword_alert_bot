@@ -451,6 +451,8 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
   # 写入数据表
   result = []
   for keyword,channel_name,_chat_id in res:
+    if not channel_name: channel_name = ''
+    
     find = utils.db.user_subscribe_list.get_or_none(**{
         'user_id':user_id,
         'keywords':keyword,
