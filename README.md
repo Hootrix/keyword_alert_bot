@@ -1,16 +1,16 @@
 
 # 🤖Telegram keyword alert bot ⏰
 
+Telegram关键字提醒机器人，用于实时监测频道/群组中的关键字消息。
 
-用于提醒 频道/群组 关键字消息
+确保普通Telegram账户能够在不需要验证的情况下加入指定群组。
 
-如果想订阅`群组`消息，确保普通TG账户加入该群组不需要验证。
+原理：通过Telegram命令行客户端监听消息，使用机器人向订阅用户发送消息提醒。
 
-原理：tg命令行客户端来监听消息，使用bot来发送消息给订阅用户。
 
 👉  Features：
 
-- [x] 关键字消息订阅：根据设定的关键字和频道来发送新消息提醒
+- [x] 关键字消息订阅：根据设定的关键字和频道实时推送消息提醒
 - [x] 支持正则表达式匹配语法
 - [x] 支持多频道订阅 & 多关键字订阅
 - [x] 支持订阅群组消息
@@ -46,7 +46,7 @@ http://t.me/keyword_alert_bot
 
 ## 正则表达式匹配
 
-使用js正则语法规则，用/包裹正则语句，目前可以使用的匹配模式：i,g
+使用类似JavaScript正则语法规则，用/包裹正则语句，目前可以使用的匹配模式：i,g
 
 ```
 # 订阅手机型号关键字：iphone x，排除XR，XS等型号，且忽略大小写
@@ -66,17 +66,17 @@ http://t.me/keyword_alert_bot
 
 #### Create Telelgram Account & API
 
-[开通api](https://my.telegram.org/apps) 建议请使用新注册的Telegram账户
+[开通api](https://my.telegram.org/apps) 建议使用新注册的Telegram账户
 
 #### Create BOT 
 
-https://t.me/BotFather  
+访问https://t.me/BotFather  创建机器人
 
 ### 2. RUN
 
 运行环境 python3.7+
 
-首次运行需要用tg账户接收数字验证码，且输入密码（telegram API触发）
+首次运行需要使用Telegram账户接收数字验证码，并输入密码（Telegram API触发）。
 
 ```
 $ pipenv install
@@ -90,7 +90,7 @@ $ python3 ./main.py
 
  - update telethon
 
-依赖库telethon可能会有旧版本不可用的情况或者其他BUG，请最好是通过定时任务去执行依赖更新。
+依赖库telethon可能存在旧版本不可用的情况或其他BUG，建议通过定时任务执行依赖更新。
 
 e.g. 
 ```
@@ -99,8 +99,8 @@ e.g.
 
 ## BUG Q&A
 
- - 查看日志发现个别群组无法接收消息，软件客户端正常接收
- 
+ - 查看日志发现个别群组无法接收消息，而软件客户端正常接收
+
  请尝试更新telethon解决问题🤔，我也很无助。
 
  - 订阅群组消息，机器人没任何反应
@@ -136,17 +136,22 @@ $ pipenv  install
 
 Purpose: Subscribe to channel messages based on keywords
 
-Multi-keyword and multi-channel subscription support, using comma `,` interval.
+Supports multiple keyword and channel subscriptions, separated by commas.
 
-Use space between keywords and channels
+Separate keywords and channels with a space.
 
-Main command:
+Main commands:
 
-/subscribe - Subscription operation: `keyword1,keyword2 https://t.me/tianfutong,https://t.me/xiaobaiup`
+/subscribe - subscribe operation: `keyword1, keyword2 https://t.me/tianfutong,https://t.me/xiaobaiup`
 
-/unsubscribe - unsubscribe: `keyword1,keyword2 https://t.me/tianfutong,https://t.me/xiaobaiup`
+/unsubscribe - unsubscribe: `keyword1, keyword2 https://t.me/tianfutong,https://t.me/xiaobaiup`
 
-/unsubscribe_all - cancel all subscriptions
+/unsubscribe_all - unsubscribe from all subscriptions
 
-/list - displays a list of all subscriptions
+/list - display all subscription lists.
 ```
+
+# License
+
+[LICENSE](./LICENSE)
+
