@@ -18,6 +18,7 @@ from telethon.tl.types import PeerChannel
 from telethon.extensions import markdown,html
 from asyncstdlib.functools import lru_cache as async_lru_cache
 import asyncio
+from utils.common import is_allow_access
 
 # 配置访问tg服务器的代理
 proxy = None
@@ -523,13 +524,10 @@ async def start(event):
   if chat_id:
     await event.respond(f'Your Telegram Chat ID is: `{chat_id}`')
 
-  # 非公共服务
-  if 'private_service' in config and config['private_service'] :
-    # 只服务指定的用户
-    authorized_users_list = config['authorized_users']
-    if chat_id not in authorized_users_list :
-        await event.respond('Opps! I\'m a private bot. 对不起, 这是一个私人专用的Bot')
-        raise events.StopPropagation
+  # 访问授权检查
+  if not is_allow_access(chat_id):
+    await event.respond('Opps! I\'m a private bot. 对不起, 这是一个私人专用的Bot')
+    raise events.StopPropagation
 
   find = utils.db.user.get_or_none(chat_id=chat_id)
   if not find:
@@ -552,6 +550,10 @@ async def subscribe(event):
   """Send a message when the command /subscribe is issued."""
   # insert chat_id
   chat_id = event.message.chat.id
+  if not is_allow_access(chat_id):
+    await event.respond('Opps! I\'m a private bot. 对不起, 这是一个私人专用的Bot')
+    raise events.StopPropagation
+  
   find = utils.db.user.get_or_none(chat_id=chat_id)
   user_id = find
   if not find:# 不存在用户信息
