@@ -520,6 +520,9 @@ async def start(event):
   # insert chat_id
   chat_id = event.message.chat.id
 
+  if chat_id:
+    await event.respond(f'Your Telegram Chat ID is: `{chat_id}`')
+
   # 非公共服务
   if 'private_service' in config and config['private_service'] :
     # 只服务指定的用户
