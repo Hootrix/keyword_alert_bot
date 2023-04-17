@@ -1,6 +1,6 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: Bug反馈模版 Bug report
+about: 提交Bug有助于改进程序. Create a report to help us improve
 title: "[BUG]"
 labels: bug
 assignees: Hootrix
@@ -26,7 +26,7 @@ Steps to reproduce the behavior:
 A clear and concise description of what you expected to happen.
 
 **订阅信息 command Info**
-/subscribe Available, available,booked,Booked https://t.me/tianfutong
+/subscribe 优惠券,Booked https://t.me/tianfutong
 
 **截图 Screenshots**
 If applicable, add screenshots to help explain your problem.
