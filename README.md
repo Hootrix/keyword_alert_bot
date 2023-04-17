@@ -94,7 +94,7 @@ $ python3 ./main.py
 
 e.g. 
 ```
-0 0 1 * * cd /home/keyword_alert_bot && pipenv update telethon > /dev/null 2>&1
+0 0 * * * cd /home/keyword_alert_bot && pipenv  telethon > /dev/null 2>&1
 ```
 
 ## BUG Q&A
