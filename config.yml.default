@@ -14,7 +14,7 @@ account:
 
 # LOG
 logger:
-  path: null # /root/absolute-path/   default null: _current_path
+  path: null # e.g. /root/absolute-path/   default null: {_current_path}/logs/
   level: INFO # FATAL,ERROR,WARN,INFO,DEBUG,NOTSET
 
 # 代理
