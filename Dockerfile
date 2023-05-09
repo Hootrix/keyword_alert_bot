@@ -4,9 +4,6 @@ FROM python:3.7-slim
 # 设置工作目录
 WORKDIR /app
 
-# 复制Pipfile到容器中
-COPY Pipfile Pipfile.lock ./
-
 # RUN pip config set global.index-url http://pypi.douban.com/simple/
 
 # 安装项目依赖
