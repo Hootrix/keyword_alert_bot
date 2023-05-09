@@ -43,7 +43,7 @@ jobs:
 
     - name: Create version file
       run: |
-        echo "__version__ = '$(date +'%Y%m%d')'" > src/__version__.py
+        echo "__version__ = '$(date +'%Y%m%d')'" > utils/__version__.py
 
     - name: Build and push Docker image
       if: steps.pipfile_check.outputs.updated == 'true'
