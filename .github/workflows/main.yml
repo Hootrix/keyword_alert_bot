@@ -52,9 +52,6 @@ jobs:
         context: .
         push: true
         tags: yha8897/keyword_alert_bot:latest
-        username: ${{ secrets.DOCKER_HUB_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-      run: |
-        echo ${{ secrets.DOCKER_HUB_USERNAME }}
-        echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+        username: ${{ variables.DOCKER_HUB_USERNAME }}
+        password: ${{ variables.DOCKER_HUB_ACCESS_TOKEN }}
 
