@@ -52,6 +52,6 @@ jobs:
         context: .
         push: true
         tags: yha8897/keyword_alert_bot:latest
-        username: ${{ variables.DOCKER_HUB_USERNAME }}
-        password: ${{ variables.DOCKER_HUB_ACCESS_TOKEN }}
+        username: yha8897
+        password: dckr_pat_-NhLJSP62nOTu917owUR0HaqGqY
 
