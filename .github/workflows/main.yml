@@ -51,6 +51,6 @@ jobs:
       with:
         context: .
         push: true
-        tags: your-docker-username/your-docker-repo:latest
+        tags: yha8897/keyword_alert_bot:latest
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
