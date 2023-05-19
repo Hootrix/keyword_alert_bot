@@ -3,8 +3,8 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - dev.20230419
-      # - master //todo
+      - dev.20230419 # debug
+      - master
 
 jobs:
   build-and-push:
