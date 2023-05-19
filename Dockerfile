@@ -8,7 +8,7 @@ WORKDIR /app
 
 # 安装项目依赖
 # RUN pip install pipenv --trusted-host pypi.douban.com && pipenv install --system
-RUN pip install pipenv && pipenv install && pipenv requirements > requirements.txt && pip install -r requirements.txt
+RUN pip install pipenv && pipenv install && pipenv run pip freeze > requirements.txt && pip install -r requirements.txt
 
 # 复制项目文件到容器
 COPY . /app
