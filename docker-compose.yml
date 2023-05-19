@@ -1,11 +1,10 @@
 version: "3.9"
 services:
   keyword_alert_bot:
-    build: .
-    image: your_dockerhub_username/keyword_alert_bot:latest
+    # build: .
+    image: yha8897/keyword_alert_bot:latest
     volumes:
-      - /Users/panc/localData/pyWorkSpace/keyword_alert_bot/.tmp:/app/.tmp 
-      - /Users/panc/localData/pyWorkSpace/keyword_alert_bot/config.yml:/app/config.yml
+      - $(pwd):/app
 
     # ports:
     #   - "8080:8080"
