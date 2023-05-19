@@ -14,6 +14,6 @@ RUN pip install pipenv && pipenv install
 COPY . /app
 COPY Pipfile /app/Pipfile
 
-CMD ["python", "main.py"]
+CMD ["pipenv shell python", "main.py"]
 # ENTRYPOINT ["pipenv shell python"]
 # CMD []
