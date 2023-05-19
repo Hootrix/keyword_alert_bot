@@ -1,4 +1,6 @@
 from config import config
+from colorama import Fore, Style, init
+from text_box_wrapper import wrap
 
 def is_allow_access(chat_id) -> bool:
   '''
@@ -18,3 +20,27 @@ def is_allow_access(chat_id) -> bool:
           return True
     return False
   return True
+
+def read_tag_from_file(filename="version.txt"):
+  '''
+  获取tag信息  
+  Args:
+      filename (str, optional): _description_. Defaults to "version.txt".
+
+  Returns:
+      _type_: _description_
+  '''
+  try:
+      with open(filename, "r") as f:
+          tag = f.read().strip()
+  except FileNotFoundError:
+      tag = "unknown"
+  return tag
+
+@wrap(border_string='##',min_padding=2)
+def banner():
+  init()  # 初始化colorama
+  green_circle = f"{Fore.GREEN}● success{Style.RESET_ALL}\n"
+  tag = read_tag_from_file()
+  message = f"{green_circle} 🤖️Telegram keyword alert bot (Version: {tag})"
+  return message

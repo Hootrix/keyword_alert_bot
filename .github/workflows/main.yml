@@ -1,0 +1,61 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      # - dev.20230419 # debug
+      - master
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.7
+
+    - name: Install pipenv
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pipenv
+
+    - name: Check for Pipfile changes
+      id: pipfile_check
+      run: |
+        if git diff HEAD^ -- Pipfile.lock; then
+          echo "::set-output name=updated::true"
+        else
+          echo "::set-output name=updated::false"
+        fi
+
+    - name: Install dependencies and lock
+      if: steps.pipfile_check.outputs.updated == 'true'
+      run: |
+        pipenv install --dev
+        pipenv lock
+
+    - name: Create version file
+      run: |
+        echo "__version__ = '$(date +'%Y%m%d')'" > utils/__version__.py
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v1 
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+    - name: Build and push Docker image
+      if: steps.pipfile_check.outputs.updated == 'true'
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: yha8897/keyword_alert_bot:latest
+        

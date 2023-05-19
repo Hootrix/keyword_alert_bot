@@ -12,6 +12,8 @@ peewee = "*"
 pyyaml = "*"
 diskcache = "*"
 asyncstdlib = "*"
+colorama = "*"
+text-box-wrapper = "*"
 
 [requires]
 python_version = "3.7"

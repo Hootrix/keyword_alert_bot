@@ -18,7 +18,7 @@ from telethon.tl.types import PeerChannel
 from telethon.extensions import markdown,html
 from asyncstdlib.functools import lru_cache as async_lru_cache
 import asyncio
-from utils.common import is_allow_access
+from utils.common import is_allow_access,banner
 
 # 配置访问tg服务器的代理
 proxy = None
@@ -29,13 +29,14 @@ if all(config['proxy'].values()): # 同时不为None
 
 account = config['account']
 account['bot_name'] = account.get('bot_name') or account['bot_username']
-cache = diskcache.Cache(current_path+'/.tmp')# 设置缓存文件目录  当前tmp文件夹。用于缓存分步执行命令的操作，避免bot无法找到当前输入操作的进度
-client = TelegramClient('{}/.{}_tg_login'.format(current_path,account['username']), account['api_id'], account['api_hash'], proxy = proxy)
+tmp_path = f'{current_path}/.tmp/'
+cache = diskcache.Cache(tmp_path)# 设置缓存文件目录  当前tmp文件夹。用于缓存分步执行命令的操作，避免bot无法找到当前输入操作的进度
+client = TelegramClient(f'{tmp_path}/.{account["username"]}_tg_login', account['api_id'], account['api_hash'], proxy = proxy)
 client.start(phone=account['phone'])
 # client.start()
 
 # 设置bot，且直接启动
-bot = TelegramClient('.{}'.format(account['bot_name']), account['api_id'], account['api_hash'],proxy = proxy).start(bot_token=account['bot_token'])
+bot = TelegramClient(f'{tmp_path}/.{account["bot_name"]}', account['api_id'], account['api_hash'],proxy = proxy).start(bot_token=account['bot_token'])
 
 def js_to_py_re(rx):
   '''
@@ -912,8 +913,7 @@ async def common(event):
   raise events.StopPropagation
 
 if __name__ == "__main__":
-
     cache.expire()
-
+    print(banner())
     # 开启client loop。防止进程退出
     client.run_until_disconnected()
