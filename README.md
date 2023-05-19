@@ -97,6 +97,13 @@ e.g.
 0 0 * * * cd /home/keyword_alert_bot && pipenv  telethon > /dev/null 2>&1
 ```
 
+## docker 
+
+配置config.yml文件后，使用docker一键启动
+```
+docker run -it --name keyword_alert_bot -v $(pwd)/config.yml:/app/config.yml   yha8897/keyword_alert_bot
+```
+
 ## BUG Q&A
 
  - 查看日志发现个别群组无法接收消息，而软件客户端正常接收
