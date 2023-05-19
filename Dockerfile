@@ -8,12 +8,13 @@ WORKDIR /app
 
 # 安装项目依赖
 # RUN pip install pipenv --trusted-host pypi.douban.com && pipenv install --system
-RUN pip install pipenv && pipenv install
+RUN pip install pipenv && pipenv install --system
 
 # 复制项目文件到容器
 COPY . /app
 COPY Pipfile /app/Pipfile
+COPY Pipfile.lock /app/Pipfile.lock
 
-CMD ["pipenv shell python", "main.py"]
+CMD ["python", "main.py"]
 # ENTRYPOINT ["pipenv shell python"]
 # CMD []
