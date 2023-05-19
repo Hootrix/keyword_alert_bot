@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - dev.20230419 # debug
+      # - dev.20230419 # debug
       - master
 
 jobs:
