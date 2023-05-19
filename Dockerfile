@@ -11,9 +11,9 @@ WORKDIR /app
 RUN pip install pipenv && pipenv install
 
 # 复制项目文件到容器
-# COPY . /app
+COPY . /app
 COPY Pipfile /app/Pipfile
 
-# CMD ["python", "main.py"]
-ENTRYPOINT ["pipenv shell python"]
-CMD []
+CMD ["python", "main.py"]
+# ENTRYPOINT ["pipenv shell python"]
+# CMD []
