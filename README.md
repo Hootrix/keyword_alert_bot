@@ -99,7 +99,7 @@ e.g.
 
 ## docker 
 
-配置config.yml文件后，使用docker一键启动
+当前目录下配置config.yml文件后，使用docker一键启动
 ```
 docker run -it --name keyword_alert_bot -v $(pwd)/config.yml:/app/config.yml   yha8897/keyword_alert_bot
 ```
