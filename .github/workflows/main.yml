@@ -43,7 +43,8 @@ jobs:
 
     - name: Create version file
       run: |
-        echo "__version__ = '$(TZ='Asia/Shanghai' date +'%Y%m%d')'" > utils/__version__.py
+        COMMIT_ID=$(git rev-parse --short HEAD)
+        echo "__version__ = '$(TZ='Asia/Shanghai' date +'%Y%m%d').$COMMIT_ID'" > utils/__version__.py
 
 
     - name: Login to DockerHub
