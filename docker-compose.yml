@@ -4,7 +4,7 @@ services:
     # build: .
     image: yha8897/keyword_alert_bot:latest
     volumes:
-      - $(pwd)/config.yml:/app/config.yml
+      - ./config.yml:/app/config.yml
 
     # ports:
     #   - "8080:8080"
