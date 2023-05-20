@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Check out code
@@ -60,14 +60,6 @@ jobs:
         push: true
         tags: yha8897/keyword_alert_bot:latest
     
-
-    - name: Install GitHub CLI
-      run: |
-        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
-        sudo apt-add-repository https://cli.github.com/packages
-        sudo apt update
-        sudo apt install gh
-
     - name: Create release
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
