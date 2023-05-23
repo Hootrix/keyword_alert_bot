@@ -1,7 +1,9 @@
 from config import config
 from colorama import Fore, Style, init
 from text_box_wrapper import wrap
+from logger import logger
 from .__version__ import __version__
+from db import utils
 
 
 def is_allow_access(chat_id) -> bool:
@@ -47,3 +49,32 @@ def banner():
   tag = read_tag_from_file()
   message = f"{green_circle} 🤖️Telegram keyword alert bot (Version: {tag})"
   return message
+
+
+def is_msg_block(receiver,msg,channel_name,channel_id):
+  """
+  消息黑名单检查
+  Args:
+      receiver : 消息接收用户 chat id
+      msg : 消息内容
+      channel_name : 消息发送的频道名称
+      channel_id : 消息发送的频道id
+
+  Returns:
+      Bool: True 命中黑名单 不发送消息，False 无命中 发送消息
+  """
+  user = utils.db.user.get_or_none(chat_id=receiver)
+
+  for blacklist_type in ['length_limit']:
+    find = utils.db.connect.execute_sql('select id,blacklist_value from user_block_list where user_id = ? and blacklist_type=? ' ,(user.id,blacklist_type)).fetchone()
+    if find:
+      (id,blacklist_value) = find 
+      if blacklist_type == 'length_limit':
+        limit = int(blacklist_value)
+        msg_len = len(msg)
+        if msg_len > limit:
+          logger.info(f'block_list_check refuse send. blacklist_type: {blacklist_type}, limit: {limit}, msg_len: {msg_len}')
+          return True
+  return False
+
+

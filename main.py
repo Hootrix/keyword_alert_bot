@@ -18,7 +18,7 @@ from telethon.tl.types import PeerChannel
 from telethon.extensions import markdown,html
 from asyncstdlib.functools import lru_cache as async_lru_cache
 import asyncio
-from utils.common import is_allow_access,banner
+from utils.common import is_allow_access,banner,is_msg_block
 
 # 配置访问tg服务器的代理
 proxy = None
@@ -250,6 +250,11 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                   logger.info(f'REGEX: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
                   if isinstance(event,events.NewMessage.Event):# 新建事件
                     cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
+                  
+                  # 黑名单检查
+                  if is_msg_block(receiver=receiver,msg=message.text,channel_name=event.chat.username,channel_id=event.chat_id):
+                    continue
+                  
                   await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
                 else:
                   # 已发送该消息
@@ -267,6 +272,11 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                   logger.info(f'TEXT: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
                   if isinstance(event,events.NewMessage.Event):# 新建事件
                     cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
+
+                  # 黑名单检查
+                  if is_msg_block(receiver=receiver,msg=message.text,channel_name=event.chat.username,channel_id=event.chat_id):
+                    continue
+
                   await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
                 else:
                   # 已发送该消息
@@ -686,6 +696,61 @@ async def unsubscribe(event):
     await event.respond('success unsubscribe.')
 
   raise events.StopPropagation
+
+
+# 限制消息文本长度
+@bot.on(events.NewMessage(pattern='/setlengthlimit')) 
+async def setlengthlimit(event):
+    blacklist_type = 'length_limit'
+    command = r'/setlengthlimit'
+    # get chat_id
+    chat_id = event.message.chat.id
+    find = utils.db.user.get_or_none(chat_id=chat_id)
+    user_id = find
+    if not find:  # 用户信息不存在
+        await event.respond('Failed. Please input /start')
+        raise events.StopPropagation
+
+    # parse input
+    text = event.message.text
+    text = text.replace('，', ',')  # 替换掉中文逗号
+    text = regex.sub(f'^{command}', '', text).strip()  # 确保英文逗号间隔中间都没有空格
+    splitd = [i for i in text.split(',') if i]  # 删除空元素
+
+    find = utils.db.connect.execute_sql('select id,blacklist_value from user_block_list where user_id = ? and blacklist_type=? ' ,(user_id.id,blacklist_type)).fetchone()
+    if not splitd:
+      if find is None:
+        await event.respond(f'lengthlimit not found.')
+      else:
+        await event.respond(f'setlengthlimit `{find[1]}`')
+    else: # 传入多参数 e.g. /setlengthlimit 123
+      if len(splitd) == 1 and splitd[0].isdigit():
+        blacklist_value = int(splitd[0])
+
+        if find is None:
+          # create entry in UserBlockList
+          insert_res = utils.db.user_block_list.create(**{
+              'user_id': user_id,
+              'channel_name': '',
+              'chat_id': '',
+              'blacklist_type': blacklist_type,
+              'blacklist_value': blacklist_value,
+              'create_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+              'update_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+          })
+
+          if insert_res:
+              await event.respond(f'Success lengthlimit `{blacklist_value}`')
+          else:
+              await event.respond(f'Failed lengthlimit `{blacklist_value}`')
+        else:
+          update_query = utils.db.user_block_list.update(blacklist_value = blacklist_value,update_time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')).where(utils.User_block_list.id == find[0])#更新状态
+          update_result = update_query.execute()# 更新成功返回1，不管是否重复执行
+          if update_result:
+            await event.respond(f'Success lengthlimit `{blacklist_value}`')
+          else:
+            await event.respond(f'Failed lengthlimit `{blacklist_value}`')
+    raise events.StopPropagation
 
 
 @bot.on(events.NewMessage(pattern='/help'))
