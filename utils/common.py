@@ -78,3 +78,43 @@ def is_msg_block(receiver,msg,channel_name,channel_id):
   return False
 
 
+def get_event_chat_username(event_chat):
+  '''
+  获取群组/频道的单个用户名
+  2023-05-25 发现群组存在多用户名的情况，只在usernames属性中有值
+  '''
+  
+  if hasattr(event_chat,'username') and event_chat.username:
+    return event_chat.username
+  
+  if hasattr(event_chat,'usernames') and event_chat.usernames:
+    standby_username = ''# 备选用户名
+    for i in event_chat.usernames:
+      if i.active and not i.editable and i.username:# 激活的用户名且不可编辑.优先读取
+        return i.username
+      if i.active and i.username:# 激活的用户名且不可编辑.备选读取
+        standby_username = i.username
+    
+    if standby_username:
+      return standby_username
+  
+  return None
+    
+
+def get_event_chat_username_list(event_chat):
+  '''
+  获取群组/频道的所有用户名列表
+  '''
+  result = []
+  if hasattr(event_chat,'username') and event_chat.username:
+    result.append(event_chat.username)
+  
+  if hasattr(event_chat,'usernames') and event_chat.usernames:
+    for i in event_chat.usernames:
+      if i.active and i.username:# 激活的用户名
+        result.append(i.username)
+    
+  return list(set(result))
+    
+
+

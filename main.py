@@ -18,7 +18,7 @@ from telethon.tl.types import PeerChannel
 from telethon.extensions import markdown,html
 from asyncstdlib.functools import lru_cache as async_lru_cache
 import asyncio
-from utils.common import is_allow_access,banner,is_msg_block
+from utils.common import is_allow_access,banner,is_msg_block,get_event_chat_username,get_event_chat_username_list
 
 # 配置访问tg服务器的代理
 proxy = None
@@ -179,7 +179,7 @@ async def on_greeting(event):
         logger.warning(f'event.chat not found title:{event.chat}')
       else:
         _title = f'event.chat.title:{event.chat.title},'
-      logger.debug(f'event.chat.username: {event.chat.username},event.chat.id:{event.chat.id},{_title} event.message.id:{event.message.id},text:{text}')
+      logger.debug(f'event.chat.username: {get_event_chat_username(event.chat)},event.chat.id:{event.chat.id},{_title} event.message.id:{event.message.id},text:{text}')
 
       # 1.方法(失败)：转发消息 
       # chat = 'keyword_alert_bot' #能转发 但是不能真对特定用户。只能转发给当前允许账户的bot
@@ -194,15 +194,19 @@ async def on_greeting(event):
       # 2.方法：直接发送新消息,非转发.但是可以url预览达到效果
 
       # 查找当前频道的所有订阅
-      sql = """
+      
+      event_chat_username_list = get_event_chat_username_list(event.chat)
+      event_chat_username = get_event_chat_username(event.chat)
+      placeholders = ','.join('?' for _ in event_chat_username_list)# 占位符填充
+      sql = f"""
       select u.chat_id,l.keywords,l.id,l.chat_id
 from user_subscribe_list as l  
 INNER JOIN user as u on u.id = l.user_id 
-where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create_time  desc
+where (l.chat_id = ? or l.channel_name in ({placeholders}) )  and l.status = 0  order by l.create_time  desc
       """
-      find = utils.db.connect.execute_sql(sql,(event.chat.username,str(event.chat_id))).fetchall()
+      find = utils.db.connect.execute_sql(sql,( (str(event.chat_id),)+tuple(event_chat_username_list) )).fetchall()
       if find:
-        logger.info(f'channel: {event.chat.username}; all chat_id & keywords:{find}') # 打印当前频道，订阅的用户以及关键字
+        logger.info(f'channel: {event_chat_username_list}; all chat_id & keywords:{find}') # 打印当前频道，订阅的用户以及关键字
 
         for receiver,keywords,l_id,l_chat_id in find:
           try:
@@ -218,7 +222,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
             logger.debug(f'msg_unique_rule:{config["msg_unique_rule"]} --> {CACHE_KEY_UNIQUE_SEND}')
 
             # 优先返回可预览url
-            channel_url = f'https://t.me/{event.chat.username}/' if event.chat.username else get_channel_url(event.chat.username,event.chat_id)
+            channel_url = f'https://t.me/{event_chat_username}/' if event_chat_username else get_channel_url(event_chat_username,event.chat_id)
             channel_msg_url= f'{channel_url}{message.id}'
             send_cache_key = f'_LAST_{l_id}_{message.id}_send'
             if isinstance(event,events.MessageEdited.Event):# 编辑事件
@@ -231,7 +235,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               re_update = utils.db.user_subscribe_list.update(chat_id = str(event.chat_id) ).where(utils.User_subscribe_list.id == l_id)
               re_update.execute()
             
-            chat_title = event.chat.username or event.chat.title
+            chat_title = event_chat_username or event.chat.title
             if is_regex_str(keywords):# 输入为正则字符串
               regex_match = js_to_py_re(keywords)(text)# 进行正则匹配 只支持ig两个flag
               if isinstance(regex_match,regex.Match):#search()结果
@@ -244,7 +248,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
               regex_match_str = list(set(regex_match_str))# 处理重复元素
               if regex_match_str:# 默认 findall()结果
                 # # {chat_title} \n\n
-                channel_title = f"\n\nCHANNEL: {chat_title}" if not event.chat.username else ""
+                channel_title = f"\n\nCHANNEL: {chat_title}" if not event_chat_username else ""
                 message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}**{channel_title}'
                 if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5):
                   logger.info(f'REGEX: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
@@ -252,7 +256,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                     cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
                   
                   # 黑名单检查
-                  if is_msg_block(receiver=receiver,msg=message.text,channel_name=event.chat.username,channel_id=event.chat_id):
+                  if is_msg_block(receiver=receiver,msg=message.text,channel_name=event_chat_username,channel_id=event.chat_id):
                     continue
                   
                   await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
@@ -262,11 +266,11 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                   continue
 
               else:
-                logger.debug(f'regex_match empty. regex:{keywords} ,message: t.me/{event.chat.username}/{event.message.id}')
+                logger.debug(f'regex_match empty. regex:{keywords} ,message: t.me/{event_chat_username}/{event.message.id}')
             else:#普通模式
               if keywords in text:
                 # # {chat_title} \n\n
-                channel_title = f"\n\nCHANNEL: {chat_title}" if not event.chat.username else ""
+                channel_title = f"\n\nCHANNEL: {chat_title}" if not event_chat_username else ""
                 message_str = f'[#FOUND]({channel_msg_url}) **{keywords}**{channel_title}'
                 if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5):
                   logger.info(f'TEXT: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
@@ -274,7 +278,7 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
                     cache.set(send_cache_key,1,expire=86400) # 发送标记缓存一天
 
                   # 黑名单检查
-                  if is_msg_block(receiver=receiver,msg=message.text,channel_name=event.chat.username,channel_id=event.chat_id):
+                  if is_msg_block(receiver=receiver,msg=message.text,channel_name=event_chat_username,channel_id=event.chat_id):
                     continue
 
                   await bot.send_message(receiver, message_str,link_preview = True,parse_mode = 'markdown')
@@ -299,12 +303,12 @@ where (l.channel_name = ? or l.chat_id = ?)  and l.status = 0  order by l.create
           except Exception as _e:
             logger.error(f'{_e}')
       else:
-        logger.debug(f'sql find empty. event.chat.username:{event.chat.username}, find:{find}, sql:{sql}')
+        logger.debug(f'sql find empty. event.chat.username:{event_chat_username}, find:{find}, sql:{sql}')
 
         if 'auto_leave_channel' in config and config['auto_leave_channel']:
-          if event.chat.username:# 公开频道/组
-            logger.info(f'Leave  Channel/group: {event.chat.username}')
-            await leave_channel(event.chat.username)
+          if event_chat_username:# 公开频道/组
+            logger.info(f'Leave  Channel/group: {event_chat_username}')
+            await leave_channel(event_chat_username)
 
 
 # bot相关操作
@@ -418,7 +422,8 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
           channel_entity = await client_get_entity(c, time.time() // 86400) 
           chat_id = telethon_utils.get_peer_id(PeerChannel(channel_entity.id)) # 转换为marked_id 
       
-      if channel_entity and hasattr(channel_entity,'username'): username = channel_entity.username
+      if channel_entity: 
+        username = get_event_chat_username(channel_entity) or ''
       
       if channel_entity and not channel_entity.left: # 已加入该频道
         logger.warning(f'user_id：{user_id}触发检查  已加入该私有频道:{chat_id}  invite_hash:{c}')
