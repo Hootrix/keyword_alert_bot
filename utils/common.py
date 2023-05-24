@@ -72,7 +72,7 @@ def is_msg_block(receiver,msg,channel_name,channel_id):
       if blacklist_type == 'length_limit':
         limit = int(blacklist_value)
         msg_len = len(msg)
-        if msg_len > limit:
+        if limit and msg_len > limit:
           logger.info(f'block_list_check refuse send. blacklist_type: {blacklist_type}, limit: {limit}, msg_len: {msg_len}')
           return True
   return False
