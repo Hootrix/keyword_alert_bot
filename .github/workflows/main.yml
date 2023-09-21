@@ -69,6 +69,7 @@ jobs:
         tags: yha8897/keyword_alert_bot:latest
     
     - name: Create release
+      if: steps.file_check.outputs.updated == 'true'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
