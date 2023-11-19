@@ -11,6 +11,7 @@ __all__ = [
   'db',
   'User',
   'User_subscribe_list',
+  'User_block_list',
 ]
 
 _current_path = os.path.dirname(os.path.realpath(__file__))
@@ -57,13 +58,35 @@ class User_subscribe_list(_Base):
   status = SmallIntegerField(default=0)# 0 正常 1删除
   create_time = DateTimeField('%Y-%m-%d %H:%M:%S',null=True)
   
+class User_block_list(_Base):
+    """
+    用户屏蔽列表（黑名单设置）
+    user_block_list
+    id user_id blacklist_type blacklist_value channel_name chat_id  create_time update_time
+    """
+    user_id = IntegerField(index=True)
+    
+    blacklist_type = CharField(50, null=False) # 黑名单的类型。比如length_limit、keyword、username
+    blacklist_value = CharField(120, null=False) # 黑名单值
 
+    channel_name = CharField(50,null=True,default='')# 应用范围 频道名称
+    chat_id = CharField(50, null=True, default='')  # 应用范围  群组/频道的非官方id。 e.g. -1001630956637，如果为空或默认值，表示所有群组
+    
+    create_time = DateTimeField('%Y-%m-%d %H:%M:%S', null=True)
+    update_time = DateTimeField('%Y-%m-%d %H:%M:%S', null=True)
+
+    class Meta:
+        indexes = (
+            # (('user_id', 'channel_name','chat_id', 'blocked_username'), True),  # user_id, chat_id和blocked_username整体作为唯一索引
+        )
+    
 class _Db:
   def __init__(self):
     #创建实例类
     init_class = [
       User,
-      User_subscribe_list
+      User_subscribe_list,
+      User_block_list,
     ]
     for model_class in init_class:
       try:
