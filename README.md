@@ -108,7 +108,7 @@ docker run -it --name keyword_alert_bot -v $(pwd)/config.yml:/app/config.yml   y
 
  - 查看日志发现个别群组无法接收消息，而软件客户端正常接收
 
- 请尝试更新telethon解决问题🤔，我也很无助。
+ 🤔尝试更新telethon到最新版本或者稳定的1.24.0版本
 
  - 订阅群组消息，机器人没任何反应
  https://github.com/Hootrix/keyword_alert_bot/issues/20
