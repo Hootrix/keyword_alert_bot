@@ -207,7 +207,7 @@ async def on_greeting(event):
 
       condition_strs = ['l.chat_id = ?']
       if event_chat_username_list:
-        condition_strs.append(' l.channel_name in ({placeholders}) ')
+        condition_strs.append(f' l.channel_name in ({placeholders}) ')
 
       sql = f"""
       select u.chat_id,l.keywords,l.id,l.chat_id
