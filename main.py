@@ -55,7 +55,7 @@ def js_to_py_re(rx):
 def is_regex_str(string):
   return regex.search(r'^/.*/[a-zA-Z]*?$',string)
 
-@async_lru_cache(maxsize=256)
+@async_lru_cache(maxsize=None)
 async def client_get_entity(entity,_):
   '''
   读取频道信息
@@ -146,22 +146,29 @@ async def on_greeting(event):
     '''Greets someone'''
     # telethon.events.newmessage.NewMessage.Event
     # telethon.events.messageedited.MessageEdited.Event
-    if not event.chat:
-      logger.error(f'event.chat empty. event: { event }')
-      raise events.StopPropagation
+    if not event.chat: # 私有群组出现None
+      channel_entity = await client_get_entity(event.chat_id,None)
+      if channel_entity:
+        event_chat = channel_entity
+        setattr(event_chat,'username','')
+      else:
+        logger.error(f'event_chat empty. event: { event }')
+        raise events.StopPropagation
+    else:
+      event_chat = event.chat
     
-    if not hasattr(event.chat,'username'):
-      logger.error(f'event.chat not found username:{event.chat}')
+    if not hasattr(event_chat,'username'):
+      logger.error(f'event_chat not found username:{event_chat}')
       raise events.StopPropagation
 
-    if event.chat.username == account['bot_name']: # 不监听当前机器人消息
-      logger.debug(f'不监听当前机器人消息, event.chat.username: { event.chat.username }')
+    if event_chat.username == account['bot_name']: # 不监听当前机器人消息
+      logger.debug(f'不监听当前机器人消息, event_chat.username: { event_chat.username }')
       raise events.StopPropagation
 
     # 是否拒绝来自其它机器人发在群里的消息
     if 'block_bot_msg' in config and config['block_bot_msg']:
       if hasattr(event.message.sender,'bot') and event.message.sender.bot :
-        logger.debug(f'不监听所有机器人消息, event.chat.username: { event.chat.username }')
+        logger.debug(f'不监听所有机器人消息, event_chat.username: { event_chat.username }')
         raise events.StopPropagation
         
     # if not event.is_group:# channel 类型
@@ -175,11 +182,11 @@ async def on_greeting(event):
 
       # 打印消息
       _title = ''
-      if not hasattr(event.chat,'title'):
-        logger.warning(f'event.chat not found title:{event.chat}')
+      if not hasattr(event_chat,'title'):
+        logger.warning(f'event_chat not found title:{event_chat}')
       else:
-        _title = f'event.chat.title:{event.chat.title},'
-      logger.debug(f'event.chat.username: {get_event_chat_username(event.chat)},event.chat.id:{event.chat.id},{_title} event.message.id:{event.message.id},text:{text}')
+        _title = f'event.chat.title:{event_chat.title},'
+      logger.debug(f'event.chat.username: {get_event_chat_username(event_chat)},event.chat.id:{event_chat.id},{_title} event.message.id:{event.message.id},text:{text}')
 
       # 1.方法(失败)：转发消息 
       # chat = 'keyword_alert_bot' #能转发 但是不能真对特定用户。只能转发给当前允许账户的bot
@@ -194,17 +201,27 @@ async def on_greeting(event):
       # 2.方法：直接发送新消息,非转发.但是可以url预览达到效果
 
       # 查找当前频道的所有订阅
-      
-      event_chat_username_list = get_event_chat_username_list(event.chat)
-      event_chat_username = get_event_chat_username(event.chat)
+      event_chat_username_list = get_event_chat_username_list(event_chat)
+      event_chat_username = get_event_chat_username(event_chat)
       placeholders = ','.join('?' for _ in event_chat_username_list)# 占位符填充
+
+      condition_strs = ['l.chat_id = ?']
+      if event_chat_username_list:
+        condition_strs.append(' l.channel_name in ({placeholders}) ')
+
       sql = f"""
       select u.chat_id,l.keywords,l.id,l.chat_id
 from user_subscribe_list as l  
 INNER JOIN user as u on u.id = l.user_id 
-where (l.chat_id = ? or l.channel_name in ({placeholders}) )  and l.status = 0  order by l.create_time  desc
+where ({' OR '.join(condition_strs)}) and l.status = 0  order by l.create_time  desc
       """
-      find = utils.db.connect.execute_sql(sql,( (str(event.chat_id),)+tuple(event_chat_username_list) )).fetchall()
+      
+      # bind = [str(event.chat_id)]
+      bind = [str(telethon_utils.get_peer_id(PeerChannel(event.chat_id)))] # 确保查询和入库的id单位统一 marked_id 
+      if event_chat_username_list:
+        bind += event_chat_username_list
+        
+      find = utils.db.connect.execute_sql(sql,tuple(bind)).fetchall()
       if find:
         logger.info(f'channel: {event_chat_username_list}; all chat_id & keywords:{find}') # 打印当前频道，订阅的用户以及关键字
 
@@ -223,6 +240,7 @@ where (l.chat_id = ? or l.channel_name in ({placeholders}) )  and l.status = 0  
 
             # 优先返回可预览url
             channel_url = f'https://t.me/{event_chat_username}/' if event_chat_username else get_channel_url(event_chat_username,event.chat_id)
+
             channel_msg_url= f'{channel_url}{message.id}'
             send_cache_key = f'_LAST_{l_id}_{message.id}_send'
             if isinstance(event,events.MessageEdited.Event):# 编辑事件
@@ -249,6 +267,7 @@ where (l.chat_id = ? or l.channel_name in ({placeholders}) )  and l.status = 0  
               if regex_match_str:# 默认 findall()结果
                 # # {chat_title} \n\n
                 channel_title = f"\n\nCHANNEL: {chat_title}" if not event_chat_username else ""
+
                 message_str = f'[#FOUND]({channel_msg_url}) **{regex_match_str}**{channel_title}'
                 if cache.add(CACHE_KEY_UNIQUE_SEND,1,expire=5):
                   logger.info(f'REGEX: receiver chat_id:{receiver}, l_id:{l_id}, message_str:{message_str}')
@@ -629,7 +648,11 @@ async def unsubscribe_all(event):
     re_update = utils.db.user_subscribe_list.update(status = 1 ).where(utils.User_subscribe_list.user_id == user_id)#更新状态
     re_update = re_update.execute()# 更新成功返回1，不管是否重复执行
     if re_update:
-      await event.respond('success unsubscribe_all:\n' + msg,link_preview = False,parse_mode = None)
+      # await event.respond('success unsubscribe_all:\n' + msg,link_preview = False,parse_mode = None)
+      text, entities = html.parse('success unsubscribe_all:\n' + msg)# 解析超大文本 分批次发送 避免输出报错
+      for text, entities in telethon_utils.split_text(text, entities):
+        await event.respond(text,formatting_entities=entities) 
+
   else:
     await event.respond('not found unsubscribe list')
   raise events.StopPropagation

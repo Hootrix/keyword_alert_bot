@@ -22,7 +22,7 @@ Telegram关键字提醒机器人，用于实时监测频道/群组中的关键�
 
 👉 Todo:
 
-- [ ] 私有群组订阅和提醒
+- [x] 私有群组订阅和提醒
 - [ ] 私有频道消息提醒完整内容预览
 - [ ] 多账号支持
 - [ ] 扫描退出无用频道/群组
@@ -108,7 +108,7 @@ docker run -it --name keyword_alert_bot -v $(pwd)/config.yml:/app/config.yml   y
 
  - 查看日志发现个别群组无法接收消息，而软件客户端正常接收
 
- 请尝试更新telethon解决问题🤔，我也很无助。
+ 🤔尝试更新telethon到最新版本或者稳定的1.24.0版本
 
  - 订阅群组消息，机器人没任何反应
  https://github.com/Hootrix/keyword_alert_bot/issues/20
