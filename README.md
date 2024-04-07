@@ -105,6 +105,9 @@ docker run -it --name keyword_alert_bot -v $(pwd)/config.yml:/app/config.yml   y
 ```
 
 ## BUG Q&A
+ - You have joined too many channels/supergroups (caused by JoinChannelRequest)
+
+ BOT中所有订阅频道的总数超过 500。原因是BOT使用的Telegram演示账户限制导致。建议你自行部署
 
  - 查看日志发现个别群组无法接收消息，而软件客户端正常接收
 
