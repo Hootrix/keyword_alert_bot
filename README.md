@@ -31,7 +31,8 @@ Telegram关键字提醒机器人，用于实时监测频道/群组中的关键�
 
 http://t.me/keyword_alert_bot
 
-![image](https://user-images.githubusercontent.com/10736915/171514829-4186d486-e1f4-4303-b3a9-1cfc1b571668.png)
+<img width="300px" alt="demo" src="https://user-images.githubusercontent.com/10736915/171514829-4186d486-e1f4-4303-b3a9-1cfc1b571668.png" />
+
 
 
 # USAGE
