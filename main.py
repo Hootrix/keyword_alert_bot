@@ -341,7 +341,7 @@ def parse_url(url):
   Returns:
       [dict]: [按照个人认为的字段区域名称]  <scheme>://<host>/<uri>?<query>#<fragment>
   """
-  if regex.search('^t\.me/',url):
+  if regex.search(r'^t\.me/',url):
     url = f'http://{url}'
 
   res = urlparse(url) # <scheme>://<netloc>/<path>;<params>?<query>#<fragment>
@@ -429,7 +429,7 @@ async def join_channel_insert_subscribe(user_id,keyword_channel_list):
         # channel_entity = await client_get_entity(real_id, time.time() // 86400 )
         chat_id = telethon_utils.get_peer_id(PeerChannel(real_id)) # 转换为marked_id 
       else:# 传入普通名称
-        if regex.search('^\+',c):# 邀请链接
+        if regex.search(r'^\+',c):# 邀请链接
           is_chat_invite_link = True
           c = c.lstrip('+')
           channel_entity = None
@@ -597,10 +597,10 @@ async def subscribe(event):
   
   text = event.message.text
   text = text.replace('，',',')# 替换掉中文逗号
-  text = regex.sub('\s*,\s*',',',text) # 确保英文逗号间隔中间都没有空格  如 "https://t.me/xiaobaiup, https://t.me/com9ji"
-  splitd = [i for i in regex.split('\s+',text) if i]# 删除空元素
+  text = regex.sub(r'\s*,\s*',',',text) # 确保英文逗号间隔中间都没有空格  如 "https://t.me/xiaobaiup, https://t.me/com9ji"
+  splitd = [i for i in regex.split(r'\s+',text) if i]# 删除空元素
   if len(splitd) <= 1:
-    await event.respond('输入需要订阅的关键字,支持js正则语法：`/[\s\S]*/ig`\n\nInput the keyword that needs to subscribe, support JS regular syntax：`/[\s\S]*/ig`')
+    await event.respond(r'输入需要订阅的关键字,支持js正则语法：`/[\s\S]*/ig`\n\nInput the keyword that needs to subscribe, support JS regular syntax：`/[\s\S]*/ig`')
     cache.set('status_{}'.format(chat_id),{'current_status':'/subscribe keywords','record_value':text},expire=5*60)#设置5m后过期
   elif len(splitd)  == 3:
     command, keywords, channels = splitd
@@ -671,8 +671,8 @@ async def unsubscribe_id(event):
     raise events.StopPropagation
   text = event.message.text
   text = text.replace('，',',')# 替换掉中文逗号
-  text = regex.sub('\s*,\s*',',',text) # 确保英文逗号间隔中间都没有空格  如 "https://t.me/xiaobaiup, https://t.me/com9ji"
-  splitd = [i for i in regex.split('\s+',text) if i]# 删除空元素
+  text = regex.sub(r'\s*,\s*',',',text) # 确保英文逗号间隔中间都没有空格  如 "https://t.me/xiaobaiup, https://t.me/com9ji"
+  splitd = [i for i in regex.split(r'\s+',text) if i]# 删除空元素
   if len(splitd) > 1:
     ids = [int(i) for i in splitd[1].split(',') if i.isnumeric()]
     if not ids:
@@ -708,8 +708,8 @@ async def unsubscribe(event):
 
   text = event.message.text
   text = text.replace('，',',')# 替换掉中文逗号
-  text = regex.sub('\s*,\s*',',',text) # 确保英文逗号间隔中间都没有空格  如 "https://t.me/xiaobaiup, https://t.me/com9ji"
-  splitd = [i for i in regex.split('\s+',text) if i]# 删除空元素
+  text = regex.sub(r'\s*,\s*',',',text) # 确保英文逗号间隔中间都没有空格  如 "https://t.me/xiaobaiup, https://t.me/com9ji"
+  splitd = [i for i in regex.split(r'\s+',text) if i]# 删除空元素
   if len(splitd) <= 1:
     await event.respond('输入需要**取消订阅**的关键字\n\nEnter a keyword that requires **unsubscribe**')
     cache.set('status_{}'.format(chat_id),{'current_status':'/unsubscribe keywords','record_value':text},expire=5*60)#设置5m后过期
@@ -927,7 +927,7 @@ async def common(event):
   chat_id = event.message.chat.id
   text = event.text
   text = text.replace('，',',')# 替换掉中文逗号
-  text = regex.sub('\s*,\s*',',',text) # 确保英文逗号间隔中间都没有空格  如 "https://t.me/xiaobaiup, https://t.me/com9ji"
+  text = regex.sub(r'\s*,\s*',',',text) # 确保英文逗号间隔中间都没有空格  如 "https://t.me/xiaobaiup, https://t.me/com9ji"
 
   find = cache.get('status_{}'.format(chat_id))
   if find:
@@ -939,7 +939,7 @@ async def common(event):
       raise events.StopPropagation
     elif find['current_status'] == '/subscribe channels':# 当前输入频道
       full_command = find['record_value'] + ' ' + text
-      splitd = [i for i in regex.split('\s+',full_command) if i]# 删除空元素
+      splitd = [i for i in regex.split(r'\s+',full_command) if i]# 删除空元素
       if len(splitd)  != 3:
         await event.respond('关键字请不要包含空格 可使用正则表达式解决\n\nThe keyword must not contain Spaces.')
         raise events.StopPropagation
@@ -974,7 +974,7 @@ async def common(event):
       raise events.StopPropagation
     elif find['current_status'] == '/unsubscribe channels':# 当前输入频道
       full_command = find['record_value'] + ' ' + text
-      splitd = [i for i in regex.split('\s+',full_command) if i]# 删除空元素
+      splitd = [i for i in regex.split(r'\s+',full_command) if i]# 删除空元素
       if len(splitd)  != 3:
         await event.respond('关键字请不要包含空格 可使用正则表达式解决\n\nThe keyword must not contain Spaces.')
         raise events.StopPropagation
