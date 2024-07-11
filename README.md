@@ -154,11 +154,18 @@ e.g.
  ### 3. 订阅群组消息，机器人没任何反应
  https://github.com/Hootrix/keyword_alert_bot/issues/20
 
- ###  4. ModuleNotFoundError: No module named 'asyncstdlib', No module named '...'
+ ### 4. ModuleNotFoundError: No module named 'asyncstdlib', No module named '...'
 
 ```
 $ pipenv  install
 ```
+
+ ### 5. 同时存在多关键字如何匹配
+
+```
+/(?=.*cc)(?=.*bb)(?=.*aa).*/
+```
+
 
 ## ☕ Buy me a coffee
 
