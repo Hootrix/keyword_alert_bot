@@ -817,8 +817,6 @@ BUG反馈：https://git.io/JJ0Ey
 
   /list
 
----
-Purpose: Subscribe to channel messages based on keywords. Support groups
 
 BUG FEEDBACK: https://git.io/JJ0Ey
 
