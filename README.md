@@ -86,9 +86,17 @@ $ docker restart keyword_alert_bot
 # 停止
 $ docker stop keyword_alert_bot
 
-# 数据持久化挂载路径: /app/db/.db
+# 数据库文件挂载路径: /app/db/.db
 $ docker run -it --name keyword_alert_bot  -v $(pwd)/config.yml:/app/config.yml -v $(pwd)/db/keyword_alert_bot.db:/app/db/.db yha8897/keyword_alert_bot
 
+```
+
+### docker镜像更新
+
+避免数据丢失，容器更新前记得把docker中数据备份。如果已经把数据库文件挂载进容器 可以不用
+```
+$ docker cp keyword_alert_bot:/app/db/.db ~/keyword_alert_bot.db
+# 即可保存到: ~/keyword_alert_bot.db
 ```
 
 
