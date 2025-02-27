@@ -1,6 +1,5 @@
 #coding=utf-8
 from telethon import TelegramClient, events, sync, errors
-from db import utils
 import socks,os,datetime
 import re as regex
 import diskcache
@@ -19,6 +18,8 @@ from telethon.extensions import markdown,html
 from asyncstdlib.functools import lru_cache as async_lru_cache
 import asyncio
 from utils.common import is_allow_access,banner,is_msg_block,get_event_chat_username,get_event_chat_username_list
+from utils import db_model as utils
+
 
 # 配置访问tg服务器的代理
 proxy = None

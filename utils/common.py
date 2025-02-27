@@ -3,7 +3,8 @@ from colorama import Fore, Style, init
 from text_box_wrapper import wrap
 from logger import logger
 from .__version__ import __version__
-from db import utils
+from utils import db_model as utils
+
 
 
 def is_allow_access(chat_id) -> bool:

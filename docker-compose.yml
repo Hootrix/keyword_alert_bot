@@ -5,6 +5,7 @@ services:
     image: yha8897/keyword_alert_bot:latest
     volumes:
       - ./config.yml:/app/config.yml
+      - ./db/:/app/db/
 
     # ports:
     #   - "8080:8080"

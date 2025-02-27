@@ -14,9 +14,12 @@ __all__ = [
   'User_block_list',
 ]
 
-_current_path = os.path.dirname(os.path.realpath(__file__))
-
-_path = '{}/.db'.format(_current_path)
+# 获取项目根目录
+_root_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+# 数据库路径设置为项目根目录下的db目录
+_path = '{}/db/.db'.format(_root_path)
+_path_dir = os.path.dirname(_path)
+not os.path.exists(_path_dir) and os.makedirs(_path_dir)
 
 # 本地 执行sqlite写入
 _connect = SqliteDatabase(_path)

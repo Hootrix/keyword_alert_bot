@@ -1,21 +1,15 @@
-# 使用官方Python基础镜像
-FROM python:3.7-slim
-
-# 设置工作目录
+FROM python:3.11-slim AS dependency-builder
 WORKDIR /app
-
-# RUN pip config set global.index-url http://pypi.douban.com/simple/
-
-# 复制项目文件到容器
 COPY . /app
-# COPY Pipfile /app/Pipfile
-# COPY Pipfile.lock /app/Pipfile.lock
+RUN pip install pipenv && \
+    pipenv requirements > requirements.txt && \
+    pip install --timeout=60 --retries=5 --target=/site-packages -r requirements.txt
 
-# 安装项目依赖
-# RUN pip install pipenv --trusted-host pypi.douban.com && pipenv install --system
-# RUN pip install pipenv && pipenv install && pipenv run pip freeze > requirements.txt && pip install -r requirements.txt
-RUN pip install pipenv && pipenv install
-
-CMD ["pipenv", "run", "python", "main.py"]
-# ENTRYPOINT ["pipenv shell python"]
-# CMD []
+    
+FROM gcr.io/distroless/python3-debian12:nonroot
+WORKDIR /app
+COPY --from=dependency-builder /site-packages /site-packages
+COPY --from=dependency-builder /app/ /app/
+ENV PYTHONPATH=/site-packages
+USER nonroot
+CMD ["main.py"]
