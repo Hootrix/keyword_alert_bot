@@ -22,4 +22,3 @@ logger = logging.getLogger('keyword_alert.root')
 logger.setLevel(__level)
 logger.addHandler(handler)
  
- 

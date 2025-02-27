@@ -22,10 +22,10 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v3
       with:
-        python-version: 3.7
+        python-version: 3.11
 
     - name: Install pipenv
       run: |
