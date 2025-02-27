@@ -153,7 +153,7 @@ $ python3 ./main.py
 
  BOT中所有订阅频道的总数超过 500。原因是BOT使用的Telegram演示账户限制导致。建议你自行部署
 
- ### sqlite3.OperationalError: unable to open database file
+ ### 2. sqlite3.OperationalError: unable to open database file
 
   如果是docker镜像启动，由于内部使用nonroot账户 需要授权挂载文件权限 或者直接使用`--user root`参数
   ```
@@ -161,14 +161,14 @@ $ python3 ./main.py
   ```
 
 
- ### 2. 查看日志发现个别群组无法接收消息，而软件客户端正常接收
+ ### 3. 查看日志发现个别群组无法接收消息，而软件客户端正常接收
 
  🤔尝试更新telethon到最新版本或者稳定的1.24.0版本
 
- ### 3. 订阅群组消息，机器人没任何反应
+ ### 4. 订阅群组消息，机器人没任何反应
  https://github.com/Hootrix/keyword_alert_bot/issues/20
 
- ### 4. 同时存在多关键字如何匹配
+ ### 5. 同时存在多关键字如何匹配
 
 ```
 /(?=.*cc)(?=.*bb)(?=.*aa).*/
