@@ -99,6 +99,10 @@ $ docker cp keyword_alert_bot:/app/db/.db ~/keyword_alert_bot.db
 # 即可保存到: ~/keyword_alert_bot.db
 ```
 
+持久化所有数据，避免权限问题 `--user root` 强制root权限执行
+```
+$ docker run -d --name keyword_alert_bot --user root  -v $(pwd)/config.yml:/app/config.yml -v $(pwd)/db/:/app/db/ -v $(pwd)/.tmp/:/app/.tmp/ -v $(pwd)/logs/:/app/logs/  yha8897/keyword_alert_bot
+```
 
 ## 💪Manual Build
 
@@ -148,6 +152,14 @@ $ python3 ./main.py
  ### 1. You have joined too many channels/supergroups (caused by JoinChannelRequest)
 
  BOT中所有订阅频道的总数超过 500。原因是BOT使用的Telegram演示账户限制导致。建议你自行部署
+
+ ### sqlite3.OperationalError: unable to open database file
+
+  如果是docker镜像启动，由于内部使用nonroot账户 需要授权挂载文件权限 或者直接使用`--user root`参数
+  ```
+  $ docker run -it --name keyword_alert_bot --user root  -v $(pwd)/config.yml:/app/config.yml -v $(pwd)/db/:/app/db/ -v $(pwd)/.tmp/:/app/.tmp/ -v $(pwd)/logs/:/app/logs/  yha8897/keyword_alert_bot
+  ```
+
 
  ### 2. 查看日志发现个别群组无法接收消息，而软件客户端正常接收
 
