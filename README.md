@@ -60,7 +60,7 @@ https://t.me/BotFather  创建机器人
 ### 2. 🐳Docker
 
 ```
-$ docker run --rm -it  -v $(pwd)/config.yml:/app/config.yml -v $(pwd)/db/:/app/db/ yha8897/keyword_alert_bot
+$ docker run -it --name keyword_alert_bot -v $(pwd)/config.yml:/app/config.yml -v $(pwd)/db/:/app/db/ yha8897/keyword_alert_bot
 
 Please enter the code you received: 12345
 Please enter your password: 
@@ -87,7 +87,7 @@ $ docker restart keyword_alert_bot
 $ docker stop keyword_alert_bot
 
 # 数据持久化挂载路径: /app/db/.db
-$ docker run --rm -it  -v $(pwd)/config.yml:/app/config.yml -v $(pwd)/db/keyword_alert_bot.db:/app/db/.db yha8897/keyword_alert_bot
+$ docker run -it --name keyword_alert_bot  -v $(pwd)/config.yml:/app/config.yml -v $(pwd)/db/keyword_alert_bot.db:/app/db/.db yha8897/keyword_alert_bot
 
 ```
 
