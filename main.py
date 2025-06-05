@@ -195,9 +195,9 @@ async def on_greeting(event):
       # chat = 349506543# 无法使用chat_id直接转发 没有任何反应
       # chat = 1354871670
       # await message.forward_to('keyword_alert_bot')
-      # await client.forward_messages(chat, message)
-      # await bot.forward_messages(chat, message)
-      # await client.forward_messages(chat, message.id, from_chat)
+      # await client.copy_messages(chat, message)
+      # await bot.copy_messages(chat, message)
+      # await client.copy_messages(chat, message.id, from_chat)
 
       # 2.方法：直接发送新消息,非转发.但是可以url预览达到效果
 
